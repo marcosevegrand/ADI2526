@@ -73,6 +73,11 @@ Se o teu KNIME der erro com `CURRENTCOLUMN`:
 ### 2.3 Corrigir tipos de dados
 Node: Column Type Converter
 
+Se nao tiveres este node na tua instalacao, usa:
+- Column Auto Type Cast
+- String to Number (para colunas que ficarem mal convertidas)
+- Value Mapper (para `explicit`, se necessario)
+
 Configuracao recomendada:
 - String: `track_id`, `track_name`, `artist_name`, `album_name`, `genre`
 - Integer: `release_year`, `popularity`, `duration_ms`, `key`, `mode`, `time_signature`
@@ -97,7 +102,7 @@ Regras (ordem importante):
 6. `$duration_ms$ <= 0 => "drop"`
 7. `$tempo$ <= 0 => "drop"`
 8. `$key$ < 0 OR $key$ > 11 => "drop"`
-9. `$mode$ != 0 AND $mode$ != 1 => "drop"`
+9. `NOT $mode$ IN (0, 1) => "drop"`
 10. `$danceability$ < 0 OR $danceability$ > 1 => "drop"`
 11. `$energy$ < 0 OR $energy$ > 1 => "drop"`
 12. `$speechiness$ < 0 OR $speechiness$ > 1 => "drop"`
@@ -392,3 +397,141 @@ Guardar:
 6. Tabela final com metricas e conclusao critica
 
 Este caminho nao substitui a versao completa, mas garante resposta valida ao enunciado com qualidade aceitavel.
+
+---
+
+## 12. Execucao por blocos (ordem exata + configuracao)
+
+Esta secao e para montares o workflow sem duvidas, por blocos.
+
+### Bloco A. Ingestao e Qualidade
+Ordem de nodes:
+1. CSV Reader
+2. String Manipulation (Multi Column)
+3. Column Auto Type Cast
+4. Rule Engine
+5. Row Filter
+6. Missing Value Row Filter
+7. Missing Value
+8. Duplicate Row Filter
+9. Statistics
+
+Configuracao critica:
+- String Manipulation (Multi Column): incluir so `track_id`, `track_name`, `artist_name`, `album_name`, `genre`; expressao `strip($$CURRENTCOLUMN$$)`.
+- Rule Engine: criar `quality_flag` e terminar com `TRUE => "keep"`.
+- Row Filter: manter apenas `quality_flag = keep`.
+- Missing Value Row Filter: remover linhas com missing em `track_id`, `genre`, `popularity`.
+- Duplicate Row Filter: chave `track_id`, manter primeira ocorrencia.
+
+Saida do bloco:
+- tabela limpa, tipada, sem duplicados chave e pronta para EDA/modelacao.
+
+### Bloco B. EDA
+Ordem de nodes:
+1. Histogram
+2. Box Plot
+3. Linear Correlation
+4. Correlation Matrix
+5. GroupBy
+6. Bar Chart
+
+Configuracao critica:
+- Histogram/Box Plot: analisar `danceability`, `energy`, `loudness`, `valence`, `tempo`, `duration_ms`, `popularity`.
+- GroupBy: agrupar por `genre`; agregar media e mediana de `popularity`, `energy`, `danceability`, `valence`.
+
+Saida do bloco:
+- evidencias para descricao do dataset e conhecimento extraido.
+
+### Bloco C. Preparacao para Modelacao
+Ordem de nodes:
+1. Column Filter
+2. Partitioning (Classificacao)
+3. Partitioning (Regressao)
+4. Normalizer/Standardizer (apenas ramos SVM e kNN)
+
+Configuracao critica:
+- Column Filter: remover de features `track_id`, `track_name`, `artist_name`, `album_name`.
+- Ramo classificacao: target `genre`; usar stratified sampling no Partitioning.
+- Ramo regressao: target `popularity`; sampling aleatorio com seed fixa.
+
+Saida do bloco:
+- treino/teste para classificacao e regressao.
+
+### Bloco D. Classificacao (genre)
+Ordem minima de nodes por modelo:
+1. Learner
+2. Predictor
+3. Scorer
+
+Modelos obrigatorios recomendados:
+1. Decision Tree Learner
+2. Random Forest Learner
+3. Gradient Boosted Trees Learner
+
+Modelos opcionais para reforco:
+1. SVM Learner
+2. k-NN Learner
+
+Configuracao critica:
+- `target column`: `genre`.
+- SVM/kNN: aplicar Normalizer/Standardizer antes do Learner.
+
+Saida do bloco:
+- Accuracy, Precision, Recall, F1 e matriz de confusao por modelo.
+
+### Bloco E. Regressao (popularity)
+Ordem minima de nodes por modelo:
+1. Learner
+2. Predictor
+3. Numeric Scorer
+
+Modelos recomendados:
+1. Linear Regression Learner
+2. Random Forest Learner (regressao)
+3. Gradient Boosted Trees Learner (regressao)
+
+Configuracao critica:
+- `target column`: `popularity`.
+
+Saida do bloco:
+- RMSE, MAE, R2 por modelo.
+
+### Bloco F. Otimizacao
+Ordem de nodes:
+1. Parameter Optimization Loop Start
+2. Learner
+3. Predictor
+4. Scorer/Numeric Scorer
+5. Parameter Optimization Loop End
+
+Configuracao critica:
+- Classificacao: otimizar para max F1 (ou Accuracy se justificares).
+- Regressao: otimizar para min RMSE (e observar MAE/R2).
+- Guardar parametros vencedores no relatorio.
+
+Saida do bloco:
+- melhor combinacao de hiperparametros por modelo selecionado.
+
+### Bloco G. Comparacao e Export
+Ordem de nodes:
+1. Concatenate
+2. Sorter
+3. CSV Writer
+4. Image Writer (opcional)
+
+Configuracao critica:
+- criar tabela final de classificacao e tabela final de regressao.
+- ordenar por metrica principal (F1 em classificacao, RMSE em regressao).
+
+Saida do bloco:
+- artefactos finais para o relatorio e apresentacao.
+
+### Bloco H. Mapeamento direto ao enunciado
+Para garantir cobertura total:
+1. "Explorar, analisar e preparar dados" -> Blocos A, B, C
+2. "Conceber modelos" -> Blocos D e E
+3. "Otimizar modelos" -> Bloco F
+4. "Analise critica de resultados" -> Bloco G + Secao 9
+
+Nota importante:
+- Repete a mesma estrutura no Dataset Atribuido (par/impar no Blackboard), porque o enunciado exige as duas tarefas em paralelo.
