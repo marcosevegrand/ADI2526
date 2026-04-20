@@ -1,0 +1,375 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{caption}
+
+\geometry{margin=2.5cm}
+\setstretch{1.15}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={Relatorio ADI - Analise de Dados e Modelacao em KNIME}
+}
+
+\newcommand{\placeholderfig}[2]{
+\begin{figure}[H]
+    \centering
+    \fbox{%
+        \begin{minipage}[c][6cm][c]{0.9\textwidth}
+            \centering
+            \textbf{[INSERIR IMAGEM KNIME]}
+        \end{minipage}}
+    \caption{#2}
+\end{figure}
+}
+
+\title{\textbf{Relatorio de Resultados}\\
+Analise de Dados e Modelacao em KNIME\\
+\large (Duas Tarefas: Consumo Energetico e Spotify)}
+\author{\textbf{Unidade Curricular:} Analise e Descoberta de Informacao \\
+\textbf{Grupo:} [Preencher] \\
+\textbf{Elementos:} [Preencher]}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\clearpage
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+\newpage
+
+\section{Introducao}
+Este relatorio apresenta, de forma integrada, o trabalho desenvolvido para duas tarefas de analise de dados, com implementacao em \textit{workflows} KNIME:
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Tarefa A (atribuida):} classificacao de classes de consumo energetico com base em variaveis eletricas, meteorologicas e temporais;
+    \item \textbf{Tarefa B (grupo):} exploracao, tratamento e modelacao de um dataset de faixas Spotify, com componentes de \textit{clustering}, analise exploratoria e regressao de popularidade.
+\end{itemize}
+
+O relatorio aborda os dominios, os objetivos, a metodologia, a exploracao detalhada de ambos os datasets, o tratamento de dados, os modelos desenvolvidos, os resultados obtidos, analise critica e recomendacoes. Os passos sao descritos de modo a permitir reproducao dos procedimentos.
+
+\section{Dominios, Objetivos e Estrategia}
+\subsection{Dominios a tratar}
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Energia e meteorologia:} padroes de consumo eletrico em funcao de condicoes atmosfericas e caracteristicas temporais.
+    \item \textbf{Musica digital e comportamento de audicao:} relacao entre atributos acusticos e popularidade; segmentacao de faixas por perfil sonoro.
+\end{itemize}
+
+\subsection{Objetivos a alcancar}
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Construir pipelines robustos de preparacao de dados para cenarios com erros reais (valores em falta, outliers, ruido e duplicados).
+    \item Desenvolver modelos preditivos e descritivos adequados ao problema (classificacao, regressao e clustering).
+    \item Comparar alternativas de modelacao e interpretar resultados de forma critica.
+    \item Produzir conclusoes e recomendacoes com utilidade pratica.
+\end{enumerate}
+
+\subsection{Como atingir os objetivos}
+A estrategia foi organizada em fases:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item caracterizacao dos dados e auditoria inicial de qualidade;
+    \item limpeza e transformacao orientadas ao problema;
+    \item analise exploratoria para suporte de decisoes de modelacao;
+    \item treino, validacao e comparacao de modelos;
+    \item interpretacao de resultados e formulacao de recomendacoes.
+\end{enumerate}
+
+\section{Metodologia de Analise de Dados}
+Neste trabalho foi aplicado o metodo \textbf{CRISP-DM} (Cross-Industry Standard Process for Data Mining), adaptado ao contexto de dois problemas distintos e implementado em KNIME. Em vez de uma execucao linear, a aplicacao foi iterativa: os resultados de cada fase alimentaram ajustes nas fases anteriores, sobretudo na preparacao de dados e na modelacao.
+
+Na fase de \textbf{compreensao do negocio/problema}, definimos para cada tarefa a pergunta analitica principal, o tipo de output esperado e o criterio de sucesso. Na Tarefa A, o objetivo era classificar corretamente os niveis de consumo energetico (
+\texttt{Consumptions}) para apoiar leitura operacional da procura. Na Tarefa B, o objetivo foi duplo: obter segmentacoes coerentes de perfis sonoros e construir modelos de regressao para estimar \texttt{popularity}.
+
+Na \textbf{compreensao dos dados}, realizamos auditoria inicial com estatisticas descritivas, distribuicoes, contagens por categoria, boxplots e correlacoes. Esta etapa permitiu identificar variaveis com escalas muito diferentes, potenciais outliers, padroes sazonais e problemas de qualidade de dados. No dataset Spotify, esta fase foi particularmente importante por existirem erros injetados (faltas, duplicados e anomalias numericas) documentados no respetivo log.
+
+A fase de \textbf{preparacao dos dados} foi a mais extensa, incluindo limpeza, transformacao e engenharia de atributos. Aplicamos tratamento de valores em falta com estrategias diferenciadas (media, mediana ou remocao de linha, conforme a coluna), tratamento de outliers com criterio IQR, filtragem de duplicados, normalizacao Min-Max e criacao de variaveis derivadas temporais e de interacao. O principio orientador foi preservar informacao relevante e, ao mesmo tempo, reduzir ruido que pudesse degradar o desempenho dos modelos.
+
+Na fase de \textbf{modelacao}, foram treinados e comparados modelos adequados a cada problema: classificadores (Decision Tree, Random Forest, Gradient Boosted Trees, MLP) na Tarefa A; e combinacao de clustering e regressao na Tarefa B. Sempre que aplicavel, mantivemos sementes fixas para reprodutibilidade e procedemos a particao treino/teste com criterio estratificado para reduzir enviesamentos na avaliacao.
+
+Na \textbf{avaliacao}, utilizamos metricas alinhadas com o tipo de tarefa e analisamos nao apenas os valores agregados, mas tambem o comportamento do erro. Em classificacao, para alem de accuracy, consideramos o equilibrio entre classes atraves de precision/recall/F1. Em regressao, priorizamos MAE e RMSE quando o MAPE se mostrava instavel para valores reais proximos de zero. Esta leitura permitiu comparar modelos com maior rigor e identificar limitacoes praticas.
+
+Por fim, a fase de \textbf{comunicacao e deploy analitico} foi concretizada neste relatorio, com foco em reproducao, interpretacao e recomendacoes acionaveis. Embora nao tenha sido implementado deploy em producao, foram identificados passos de operacionalizacao, incluindo monitorizacao de desempenho, politica de re-treino e atualizacao de pipelines no KNIME.
+
+\section{Datasets e Exploracao Detalhada}
+\subsection{Tarefa A - Dataset de consumo energetico}
+\subsubsection*{Origem e estrutura}
+O dataset de consumo energetico (ficheiro \texttt{consumption\_dataset.csv}) contem \textbf{8\,736 registos uteis} (8\,737 linhas incluindo cabecalho) e integra:
+\begin{itemize}[leftmargin=1.2cm]
+    \item variaveis de consumo por nivel de tensao (Very High, High, Medium, Low e Total);
+    \item variaveis meteorologicas (temperatura, humidade, precipitacao, radiacao, vento, etc.);
+    \item timestamp (Date/Time);
+    \item classe-alvo \texttt{Consumptions} (classe de consumo).
+\end{itemize}
+
+A descricao semantica dos atributos foi confirmada no ficheiro \texttt{consumption\_explanation.txt}.
+
+\subsubsection*{Exploracao inicial}
+A exploracao incluiu estatisticas descritivas, boxplots e correlacao linear para identificar:
+\begin{itemize}[leftmargin=1.2cm]
+    \item escalas muito diferentes entre variaveis;
+    \item relacoes relevantes entre variaveis meteorologicas e carga/consumo;
+    \item presenca de valores em falta em alguns campos.
+\end{itemize}
+
+\placeholderfig{Grafico exploratorio da distribuicao de consumo por classe (KNIME).}{Distribuicao da variavel-alvo na Tarefa A}
+\placeholderfig{Matriz de correlacao para atributos numericos (KNIME).}{Correlacao entre atributos na Tarefa A}
+\placeholderfig{Boxplots das variaveis meteorologicas e de consumo (KNIME).}{Dispersao e outliers na Tarefa A}
+
+\subsection{Tarefa B - Dataset Spotify (grupo)}
+\subsubsection*{Origem e estrutura}
+O dataset \texttt{spotify\_tracks.csv} contem \textbf{100\,500 registos} (100\,501 linhas incluindo cabecalho), com atributos de identificacao musical e \textit{features} de audio, incluindo:
+\begin{itemize}[leftmargin=1.2cm]
+    \item metadados: \texttt{track\_id}, \texttt{track\_name}, \texttt{artist\_name}, \texttt{album\_name}, \texttt{release\_year}, \texttt{genre};
+    \item alvo/indicador de interesse: \texttt{popularity};
+    \item atributos acusticos: \texttt{danceability}, \texttt{energy}, \texttt{loudness}, \texttt{speechiness}, \texttt{acousticness}, \texttt{instrumentalness}, \texttt{liveness}, \texttt{valence}, \texttt{tempo}, etc.
+\end{itemize}
+
+A geracao dos dados foi efetuada por \texttt{create\_dataset.py}, com injecao intencional de problemas de qualidade:
+\begin{itemize}[leftmargin=1.2cm]
+    \item valores em falta (~3\% por coluna de audio);
+    \item outliers numericos (~0.7\% em colunas selecionadas);
+    \item erros de formato/tipo (strings em colunas numericas, conforme documentacao do gerador);
+    \item duplicados (500 linhas adicionadas).
+\end{itemize}
+
+O ficheiro \texttt{spotify\_tracks\_errors\_log.csv} regista o \textit{ground truth} dos erros injetados e possui 31\,000 entradas de erro (31\,001 linhas com cabecalho).
+
+\subsubsection*{Exploracao inicial}
+A exploracao incluiu distribuicoes, contagens por genero, analise de outliers e correlacoes, com foco nas \textit{features} acusticas e popularidade.
+
+\placeholderfig{Histograma de popularidade e distribuicoes dos atributos acusticos (KNIME).}{Exploracao univariada do dataset Spotify}
+\placeholderfig{Grafico de barras da distribuicao por genero (KNIME).}{Representatividade por genero musical}
+\placeholderfig{Scatter plots entre pares de features acusticas (KNIME).}{Relacoes entre variaveis no dataset Spotify}
+
+\section{Tratamento de Dados Efetuado em KNIME}
+\subsection{Tarefa A - Pipeline de preparacao}
+No workflow \texttt{atribuido.knwf}, foram identificados blocos de preparacao e enriquecimento de dados:
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Conversao temporal:} \texttt{String to Date\_Time} e \texttt{Date\_Time Part Extractor} para derivar atributos de calendario (mes, dia da semana, hora);
+    \item \textbf{Tratamento de faltas:} \texttt{Missing Value};
+    \item \textbf{Selecao/filtragem de atributos:} \texttt{Column Filter}, \texttt{Row Filter};
+    \item \textbf{Agregacao e engenharia:} \texttt{GroupBy}, \texttt{Java Snippet} (ex.: interacoes como \texttt{temperatureXhour}, variaveis indicadoras como \texttt{is\_weekend} e \texttt{is\_peak\_hour});
+    \item \textbf{Apoio exploratorio:} \texttt{Statistics}, \texttt{Linear Correlation}, \texttt{Box Plot}, \texttt{Numeric Outliers}.
+\end{itemize}
+
+\subsection{Tarefa B - Pipeline de preparacao}
+No workflow \texttt{dataset\_grupo.knwf}, o tratamento foi explicito e orientado a qualidade:
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Detecao/remocao de duplicados:} \texttt{Duplicate Row Filter} com chave composta por 20 colunas (exclui \texttt{track\_id}); opcao \texttt{remove\_duplicates=true};
+    \item \textbf{Tratamento de faltas:} \texttt{Missing Value} com estrategia por atributo:
+    \begin{itemize}
+        \item media em \texttt{danceability} e \texttt{valence};
+        \item mediana em \texttt{energy}, \texttt{speechiness}, \texttt{acousticness}, \texttt{instrumentalness}, \texttt{liveness}, \texttt{loudness}, \texttt{tempo}, \texttt{duration\_ms};
+        \item remocao de linha quando \texttt{popularity} falta.
+    \end{itemize}
+    \item \textbf{Outliers:} \texttt{Numeric Outliers} em \texttt{duration\_ms}, \texttt{loudness}, \texttt{tempo} com IQR scalar = 3.0 e substituicao por \textit{closest permitted value};
+    \item \textbf{Transformacao/normalizacao:} \texttt{Normalizer} Min-Max para intervalo [0,1] nas variaveis numericas de modelacao;
+    \item \textbf{Particao treino/teste:} \texttt{Table Partitioner} com 80\% treino / 20\% teste, estratificado por \texttt{popularity\_class}, \textit{seed}=1.
+\end{itemize}
+
+\placeholderfig{Diagrama do workflow de preparacao da Tarefa A (captura do KNIME).}{Pipeline de tratamento de dados - Tarefa A}
+\placeholderfig{Diagrama do workflow de preparacao da Tarefa B (captura do KNIME).}{Pipeline de tratamento de dados - Tarefa B}
+
+\section{Modelos Desenvolvidos e Configuracoes}
+\subsection{Tarefa A - Classificacao de consumo}
+Foram utilizados quatro modelos principais no workflow atribuido:
+
+\subsubsection*{Decision Tree}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Alvo: \texttt{Consumptions}
+    \item Criterio de divisao: Gini index
+    \item Minimo por no: 2 registos
+    \item Pruning: No pruning
+    \item Estrategia para missings: \texttt{lastPrediction}
+\end{itemize}
+
+\subsubsection*{Random Forest (classificacao)}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Alvo: \texttt{Consumptions}
+    \item Numero de modelos (arvores): 496
+    \item \textit{Split criterion}: Information Gain Ratio
+    \item \textit{Column sampling}: SquareRoot
+    \item \textit{Row sampling}: Random, fracao 1.0, sem reposicao
+    \item \textit{Seed}: 1764585560353
+\end{itemize}
+
+\subsubsection*{Gradient Boosted Trees (classificacao)}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Alvo: \texttt{Consumptions}
+    \item Numero de modelos: 300
+    \item Profundidade maxima: 4
+    \item \textit{Learning rate}: 0.1
+    \item \textit{Split criterion}: Information Gain Ratio
+\end{itemize}
+
+\subsubsection*{Rede Neural (RProp MLP)}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Alvo: \texttt{Consumptions}
+    \item 1 camada escondida
+    \item 27 neuronios na camada escondida
+    \item Maximo de iteracoes: 300
+    \item \textit{Seed}: -918993344
+\end{itemize}
+
+A avaliacao foi suportada por \texttt{Scorer} e validacao cruzada com \texttt{X\_Partitioner}/\texttt{X\_Aggregator}.
+
+\subsection{Tarefa B - Modelacao descritiva e preditiva}
+\subsubsection*{k-Means (segmentacao)}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Atributos usados: \texttt{danceability}, \texttt{energy}, \texttt{loudness}, \texttt{speechiness}, \texttt{acousticness}, \texttt{instrumentalness}, \texttt{liveness}, \texttt{valence}, \texttt{tempo}, \texttt{duration\_min}
+    \item Numero de clusters: 3 (em configuracao base observada)
+    \item Inicializacao: aleatoria
+    \item Iteracoes maximas: 99
+    \item \textit{Seed}: 1
+\end{itemize}
+
+\subsubsection*{Clustering hierarquico + Silhouette}
+O workflow inclui \texttt{Hierarchical Clustering} e \texttt{Silhouette Coefficient}, permitindo comparar qualidade de agrupamentos e suportar a escolha de $k$ em analise complementar.
+
+\subsubsection*{PCA (analise e visualizacao)}
+Foi incluida reducao dimensional com \texttt{PCA Compute} + \texttt{PCA Apply}, com suporte visual via \texttt{Scatter Plot} e coloracao por cluster.
+
+\subsubsection*{Regressao de popularidade}
+Foram observados pelo menos dois modelos:
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Linear Regression Learner}
+    \begin{itemize}
+        \item alvo: \texttt{popularity}
+        \item constante incluida
+        \item tratamento de missing no treino: \texttt{fail}
+    \end{itemize}
+    \item \textbf{Simple Regression Tree Learner}
+        \begin{itemize}
+            \item modelo nao linear para capturar relacoes com limiares.
+        \end{itemize}
+\end{itemize}
+
+A avaliacao de regressao foi feita com \texttt{Numeric Scorer}, comparando \texttt{popularity} com \texttt{Prediction (popularity)}. O node registou aviso sobre MAPE para linhas com valor real 0.
+
+\placeholderfig{Visualizacao dos clusters (2D/PCA) no KNIME.}{Segmentacao de faixas no dataset Spotify}
+\placeholderfig{Comparacao grafica de desempenho dos modelos (KNIME).}{Comparacao de modelos por metrica}
+
+\section{Sumario de Resultados e Analise Critica}
+\subsection{Tabela-sintese de resultados (preencher com valores KNIME)}
+\begin{table}[H]
+\centering
+\caption{Resumo de desempenho - Tarefa A (classificacao)}
+\begin{tabular}{lcccc}
+\toprule
+Modelo & Accuracy & Precision (macro) & Recall (macro) & F1 (macro) \\
+\midrule
+Decision Tree & [preencher] & [preencher] & [preencher] & [preencher] \\
+Random Forest & [preencher] & [preencher] & [preencher] & [preencher] \\
+Gradient Boosted Trees & [preencher] & [preencher] & [preencher] & [preencher] \\
+RProp MLP & [preencher] & [preencher] & [preencher] & [preencher] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Resumo de desempenho - Tarefa B (regressao)}
+\begin{tabular}{lcccc}
+\toprule
+Modelo & MAE & RMSE & $R^2$ & MAPE \\
+\midrule
+Linear Regression & [preencher] & [preencher] & [preencher] & [preencher/NA] \\
+Regression Tree & [preencher] & [preencher] & [preencher] & [preencher/NA] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Analise critica}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Na Tarefa A, modelos de \textit{ensemble} tendem a superar arvores simples por capturarem melhor nao linearidades e interacoes entre variaveis meteorologicas e temporais.
+    \item O desempenho de redes neurais depende fortemente de normalizacao e parametrizacao (neurons, iteracoes, seed), podendo variar entre execucoes.
+    \item Na Tarefa B, a qualidade da preparacao foi determinante, dado o dataset conter erros injetados de forma sistematica.
+    \item O aviso de MAPE no \texttt{Numeric Scorer} evidencia limitacao da metrica quando existem valores reais zero; nestes casos, MAE/RMSE devem ter prioridade interpretativa.
+    \item O clustering fornece valor exploratorio (tipologias sonoras), mas requer validacao com metrica interna (silhouette) e leitura de negocio para ser acionavel.
+\end{itemize}
+
+\subsection{Leitura dos resultados por tarefa}
+\subsubsection*{Tarefa A - Classificacao}
+Para a Tarefa A, a comparacao entre modelos deve privilegiar a combinacao de \textbf{F1 macro} e matriz de confusao, porque a classe \texttt{Consumptions} pode apresentar distribuicao desigual entre niveis. Mesmo quando a \textit{accuracy} global e elevada, importa verificar se classes menos frequentes estao a ser corretamente identificadas. Este ponto e critico em contexto energetico, onde erros em periodos de pico podem ter maior impacto operacional do que erros em periodos de consumo medio.
+
+Outro aspeto relevante e a estabilidade do modelo ao longo do tempo. Como existem variaveis meteorologicas e temporais, recomenda-se validar a consistencia por janelas temporais (ex.: semanas/meses) para detetar degradacao de desempenho sazonal. Essa analise ajuda a decidir quando re-treinar o modelo e que variaveis devem ser monitorizadas em producao.
+
+\subsubsection*{Tarefa B - Clustering e Regressao}
+No clustering, a avaliacao nao deve ficar limitada a metrica interna; e necessario interpretar os centroides para traduzir cada cluster em perfis musicais compreensiveis (por exemplo: mais energetico e dançavel vs. mais acustico e instrumental). Esta leitura semantica transforma um resultado tecnico numa segmentacao acionavel para recomendacao, curadoria e campanhas editoriais.
+
+Na regressao de \texttt{popularity}, as metricas MAE e RMSE devem ser priorizadas sempre que o MAPE apresenta comportamento instavel em torno de valores reais nulos. Alem disso, a diferenca entre treino e teste deve ser observada para identificar sinais de sobreajuste. Se a arvore de regressao superar a regressao linear de forma consistente, isso sugere relacoes nao lineares entre as \textit{features} acusticas e a popularidade.
+
+\subsection{Limitacoes e ameacas a validade}
+\begin{itemize}[leftmargin=1.2cm]
+    \item O dataset Spotify e sintetico e inclui erros injetados de forma controlada; logo, os resultados podem nao refletir integralmente a complexidade de catalogos reais.
+    \item Parte da interpretacao depende da qualidade da variavel \texttt{Consumptions} e da forma como as classes foram originalmente definidas.
+    \item As conclusoes sobre causalidade sao limitadas: os modelos capturam associacoes estatisticas, nao relacoes causais garantidas.
+    \item Configuracoes com \textit{seed} fixa aumentam reprodutibilidade, mas convem repetir experiencias com seeds alternativas para medir robustez.
+\end{itemize}
+
+\placeholderfig{Matriz de confusao do melhor modelo da Tarefa A (KNIME).}{Matriz de confusao - classificacao de consumo}
+\placeholderfig{Grafico de residuos da regressao na Tarefa B (KNIME).}{Analise de erro dos modelos de regressao}
+
+\section{Sugestoes e Recomendacoes}
+\subsection{Recomendacoes tecnicas}
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Aprofundar validacao}: usar validacao cruzada estratificada tambem na Tarefa B para reduzir variancia de avaliacao.
+    \item \textbf{Ajuste de hiperparametros}: aplicar pesquisa sistematica (\textit{grid/random search}) para ensemble e MLP.
+    \item \textbf{Engenharia de atributos}: explorar interacoes adicionais (ex.: sazonalidade detalhada, transformacoes ciclicas de hora/mes, combinacoes acusticas).
+    \item \textbf{Robustez estatistica}: testar imputacao robusta por genero/periodo e metodos alternativos de tratamento de outliers.
+    \item \textbf{Interpretabilidade}: adicionar analise de importancia de atributos e perfis de cluster para suporte a decisao.
+\end{enumerate}
+
+\subsection{Recomendacoes de negocio/aplicacao}
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Energia:} usar previsoes por classe para planeamento de carga, deteccao antecipada de periodos criticos e apoio a medidas de eficiencia.
+    \item \textbf{Spotify:} utilizar clusters para curadoria de playlists, segmentacao editorial e testes de estrategia de lancamento.
+\end{itemize}
+
+\section{Reprodutibilidade}
+\subsection{Estrutura de ficheiros utilizada}
+\begin{itemize}[leftmargin=1.2cm]
+    \item \texttt{atribuido.knwf} -- workflow da Tarefa A.
+    \item \texttt{dataset\_grupo.knwf} -- workflow da Tarefa B.
+    \item \texttt{dataset/atribuido/consumption\_dataset.csv} -- dados da Tarefa A.
+    \item \texttt{dataset/atribuido/consumption\_explanation.txt} -- dicionario de atributos da Tarefa A.
+    \item \texttt{dataset/grupo/spotify\_tracks.csv} -- dados da Tarefa B.
+    \item \texttt{dataset/grupo/spotify\_tracks\_errors\_log.csv} -- log de erros injetados.
+    \item \texttt{dataset/grupo/create\_dataset.py} -- script de geracao dos dados Spotify.
+\end{itemize}
+
+\subsection{Passos para reproducao}
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Abrir o KNIME Analytics Platform.
+    \item Importar os workflows \texttt{atribuido.knwf} e \texttt{dataset\_grupo.knwf}.
+    \item Garantir que os caminhos para os CSVs estao corretos no(s) \texttt{CSV Reader}.
+    \item Executar os workflows por blocos: exploracao, preparacao, modelacao e avaliacao.
+    \item Exportar tabelas de metricas e imagens dos graficos para inserir neste relatorio.
+\end{enumerate}
+
+\subsection{Elementos a anexar para submissao}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Relatorio PDF final (maximo 30 paginas);
+    \item Capturas dos graficos e tabelas de desempenho finais;
+    \item Workflows KNIME e datasets utilizados.
+\end{itemize}
+
+\section{Conclusao}
+O trabalho desenvolvido demonstra um ciclo completo de analise de dados em dois dominios distintos, com enfase em qualidade de dados, modelacao e interpretacao. A combinacao de procedimentos exploratorios, tratamento sistematico e comparacao de modelos permitiu produzir resultados reproduziveis e orientados a decisao. As recomendacoes apresentadas visam reforcar robustez, desempenho e aplicabilidade dos modelos em contexto real.
+
+\end{document}
