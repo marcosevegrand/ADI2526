@@ -21,9 +21,9 @@ from pathlib import Path
 np.random.seed(42)
 random.seed(42)
 
-N = 100_000
-OUTPUT       = Path(__file__).parent / "spotify_tracks.csv"
-OUTPUT_ERRORS = Path(__file__).parent / "spotify_tracks_errors_log.csv"
+N = 20_000
+OUTPUT       = Path(__file__).parent / "spotify_tracks_b.csv"
+OUTPUT_ERRORS = Path(__file__).parent / "spotify_tracks_errors_log_b.csv"
 
 # Genre definitions with characteristic audio feature means
 GENRES = {
