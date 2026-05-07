@@ -55,7 +55,7 @@ Dataset de Grupo: Spotify Tracks\\
 \pagenumbering{arabic}
 
 \section{Introducao}
-Este relatorio documenta o trabalho realizado sobre o \textbf{dataset de grupo} do Spotify, com implementacao em \textit{workflows} KNIME e enquadramento completo no metodo CRISP-DM. O objetivo foi descrever um processo analitico completo, focado em duas tarefas distintas e complementares: \textbf{(i) clustering} para descobrir perfis acusticos e \textbf{(ii) classificacao supervisionada} para prever o genero musical. A avaliacao foi feita em dois datasets: o principal (A) para treino e o dataset B como teste externo, com interpretacao adicional dos clusters no B.
+Este relatorio documenta o trabalho realizado sobre o \textbf{dataset de grupo} do Spotify, com implementacao em \textit{workflows} KNIME e enquadramento completo no metodo CRISP-DM. O objetivo foi descrever um processo analitico completo, focado em duas tarefas distintas e complementares: \textbf{(i) clustering} para descobrir perfis acusticos e \textbf{(ii) regressao supervisionada} para prever \texttt{popularity}. A avaliacao foi feita no mesmo dataset, com particao treino/teste e interpretacao adicional dos clusters por genero.
 
 O texto foi escrito para refletir fielmente o que existe no workflow, evitando passos que nao foram implementados.
 
@@ -68,16 +68,16 @@ Os objetivos do trabalho sao:
 \begin{itemize}[leftmargin=*]
     \item Garantir uma preparacao robusta dos dados (duplicados, missing, outliers e features derivadas);
     \item Descobrir perfis acusticos com \textit{k-means} e interpretar a composicao dos clusters;
-    \item Treinar um classificador supervisionado para \texttt{genre} no dataset A e testar no dataset B;
-    \item Produzir uma analise critica dos resultados, focada na generalizacao e na interpretacao dos clusters.
+    \item Treinar modelos de regressao para prever \texttt{popularity} com base nas features acusticas;
+    \item Produzir uma analise critica dos resultados, focada na interpretacao dos clusters e no desempenho de regressao.
 \end{itemize}
 
 \subsection{Estrategia seguida}
-A estrategia foi iterativa e alinhada com CRISP-DM: leitura e exploracao dos dados, preparacao sequencial, modelacao em ramos separados e avaliacao com foco na generalizacao A \textrightarrow B. Esta abordagem evita comparacoes indevidas entre tarefas diferentes (cluster vs genero) e reforca a interpretacao baseada em dados.
+A estrategia foi iterativa e alinhada com CRISP-DM: leitura e exploracao dos dados, preparacao sequencial, modelacao em ramos separados e avaliacao com foco na regressao de \texttt{popularity}. Esta abordagem evita comparacoes indevidas entre tarefas diferentes (clustering vs regressao) e reforca a interpretacao baseada em dados.
 
 \section{Metodologia CRISP-DM}
 \subsection{Compreensao do negocio}
-O objetivo analitico e caracterizar musica por perfis acusticos e prever genero musical. A utilidade pratica inclui segmentacao de catalogo e avaliacao de consistencia entre datasets.
+O objetivo analitico e caracterizar musica por perfis acusticos e prever \texttt{popularity}. A utilidade pratica inclui segmentacao de catalogo e leitura critica do que os atributos sonoros explicam sobre popularidade.
 
 \subsection{Compreensao dos dados}
 O workflow confirma a estrutura do CSV, identifica duplicados, missing e valores fora do dominio e valida a distribuicao dos generos. A exploracao inclui estatisticas descritivas, histogramas, boxplots e distribuicao por genero.
@@ -89,18 +89,18 @@ Foi implementado um pipeline sequencial: remocao de duplicados, saneamento de va
 Foram criados dois ramos principais:
 \begin{itemize}[leftmargin=*]
     \item \textbf{Clustering}: \textit{k-means} com features acusticas normalizadas, avaliacao por elbow, silhouette e PCA.
-    \item \textbf{Classificacao supervisionada}: RProp MLP com target \texttt{genre}, treinado no dataset A e testado no dataset B, com normalizacao consistente.
+    \item \textbf{Regressao supervisionada}: modelos linear e arvore de regressao para \texttt{popularity}, com normalizacao consistente e avaliacao com \textit{Numeric Scorer}.
 \end{itemize}
 
 \subsection{Avaliacao}
-Avaliacao quantitativa: accuracy e Cohen's kappa no dataset B. Avaliacao qualitativa: interpretacao de clusters por genero real e por genero previsto, evitando comparacao direta de accuracies entre tarefas diferentes.
+Avaliacao quantitativa: metricas de regressao (R2, MAE e RMSE) no teste. Avaliacao qualitativa: interpretacao de clusters por genero real, evitando comparacao direta entre tarefas diferentes.
 
 \subsection{Deployment e uso}
-Os artefactos resultantes (modelo de clustering, modelo de classificacao e tabelas de interpretacao) podem ser reutilizados para analise de novos datasets com a mesma estrutura, mantendo o mesmo pipeline de preparacao e normalizacao.
+Os artefactos resultantes (modelo de clustering, modelos de regressao e tabelas de interpretacao) podem ser reutilizados para analise de novos datasets com a mesma estrutura, mantendo o mesmo pipeline de preparacao e normalizacao.
 
 \section{Descricao do dataset}
 \subsection{Estrutura geral}
-O ficheiro \texttt{spotify\_tracks.csv} (dataset A) contem \textbf{100\,500 registos} e \textbf{21 colunas}. O periodo temporal vai de \textbf{2000 a 2024} e o dataset cobre \textbf{20 generos} musicais. O ficheiro \texttt{spotify\_tracks\_b.csv} (dataset B) tem a mesma estrutura e e usado como teste externo. Existe ainda o ficheiro \texttt{spotify\_tracks\_errors\_log.csv}, com o registo de erros introduzidos no gerador do dataset, usado para validar a preparacao de dados.
+O ficheiro \texttt{spotify\_tracks.csv} contem \textbf{100\,500 registos} e \textbf{21 colunas}. O periodo temporal vai de \textbf{2000 a 2024} e o dataset cobre \textbf{20 generos} musicais. O ficheiro \texttt{spotify\_tracks\_b.csv} tem a mesma estrutura e esta disponivel para teste externo, mas nao foi usado no workflow final. Existe ainda o ficheiro \texttt{spotify\_tracks\_errors\_log.csv}, com o registo de erros introduzidos no gerador do dataset, usado para validar a preparacao de dados.
 
 \begin{table}[H]
 \centering
@@ -125,10 +125,29 @@ Em termos praticos, os problemas mais relevantes sao os seguintes. Existem valor
 \subsection{Exploracao inicial}
 A fase de exploracao foi organizada em torno de varios blocos visuais no KNIME. O objetivo era verificar rapidamente se o dataset estava lido corretamente, perceber a forma das distribuicoes e encontrar sinais de problemas a tratar.
 
-\placeholderfig{Distribuicao da popularidade e das principais features numericas no KNIME.}{Exploracao univariada do dataset Spotify}
-\placeholderfig{Boxplots para deteccao visual de outliers e violacoes de dominio.}{Outliers e dispersao inicial}
-\placeholderfig{Scatter plots entre variaveis sonoras para identificar relacoes entre atributos.}{Relacoes bivariadas entre features acusticas}
-\placeholderfig{Distribuicao por genero musical para perceber o equilibrio do dataset.}{Representatividade por genero}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/datapopularidade.png}
+    \caption{Exploracao univariada do dataset Spotify}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/loudeness.png}
+    \caption{Outliers e dispersao inicial}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/dataplot.png}
+    \caption{Relacoes bivariadas entre features acusticas}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{imgs/clusters.png}
+    \caption{Representatividade por genero}
+\end{figure}
 
 A exploracao mostrou que as variaveis acusticas tinham escalas muito diferentes, o que e natural, mas tambem confirmou que havia varios pontos de anomalia a tratar. Por exemplo, alguns valores de \texttt{danceability}, \texttt{valence} ou \texttt{energy} surgem fora do intervalo esperado. Em paralelo, o comportamento de \texttt{tempo} e \texttt{loudness} inclui valores extremos que justificam tratamento especifico. Esta leitura inicial explica porque o workflow nao passa diretamente da leitura do CSV para a modelacao.
 
@@ -168,16 +187,17 @@ Depois desta fase, o dataset fica com 99\,353 linhas. O valor e importante porqu
 Os outliers continuos sao tratados num no especifico, \texttt{Numeric Outliers}, que opera sobre \texttt{duration\_ms}, \texttt{loudness} e \texttt{tempo}. O criterio de deteccao e o IQR, com scalar 3.0, e a acao escolhida e substituir o valor fora de intervalo pelo limite admissivel mais proximo. Esta decisao e relevante porque preserva a linha e impede que observacoes extremas deformem a modelacao.
 
 \subsection{Selecao de variaveis e separacao de ramos}
-Depois da limpeza principal, o workflow organiza uma base comum com 16 colunas, incluindo \texttt{genre} para suportar o treino supervisionado. A partir daqui o workflow divide-se em dois ramos:
+Depois da limpeza principal, o workflow organiza uma base comum com 15 colunas. A partir daqui o workflow divide-se em dois ramos:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Ramo de clustering}: remove \texttt{genre} e usa 10 features acusticas, com normalizacao Min-Max para [0,1].
-    \item \textbf{Ramo supervisionado}: mantem \texttt{genre} e as mesmas features acusticas, com normalizacao Min-Max e split de treino/teste estratificado por \texttt{genre}.
+    \item \textbf{Ramo de clustering}: usa 10 features acusticas, com normalizacao Min-Max para [0,1].
+    \item \textbf{Ramo de regressao}: mantem \texttt{popularity} como target, aplica normalizacao Min-Max e faz split treino/teste estratificado por \texttt{popularity\_class}.
 \end{itemize}
 
-No dataset B, aplica-se exatamente o mesmo pipeline de preparacao e a normalizacao do A e aplicada com \textit{Normalizer (Apply)} para evitar fuga de informacao.
-
-\placeholderfig{Fluxo de preparacao com remocao de duplicados, imputacao e outliers.}{Pipeline de preparacao no KNIME}
-\placeholderfig{Normalizacao e separacao de treino/teste para a regressao.}{Preparacao final para modelacao}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/datapreparation.png}
+    \caption{Pipeline de preparacao no KNIME}
+\end{figure}
 
 \section{Modelacao}
 \subsection{Clustering}
@@ -186,29 +206,121 @@ O clustering procura agrupar faixas com perfis sonoros semelhantes. Para isso o 
 \subsubsection*{Metodo do cotovelo}
 A escolha do numero de clusters foi analisada com varias execucoes de k-Means para valores de \textit{k} entre 3 e 9. O workflow nao usa uma funcao automatica pronta para o elbow; em vez disso, reconstrói manualmente a soma das distancias quadradas dentro de cada cluster e agrega os resultados num grafico de linha. Esse detalhe e importante porque mostra que a decisao de \textit{k} nao foi arbitraria: foi suportada por uma curva de WCSS produzida no proprio KNIME.
 
-\placeholderfig{Curva do elbow para suportar a escolha do numero de clusters.}{Metodo do cotovelo}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/line_plot.png}
+    \caption{Metodo do cotovelo}
+\end{figure}
 
 \subsubsection*{k-Means final}
 O modelo final de clustering foi fixado em \textbf{5 clusters}, com inicializacao aleatoria, seed 1 e maximo de 99 iteracoes. O output do proprio no inclui a coluna de cluster, pelo que nao foi necessario um assigner separado. Esta decisao final e coerente com a leitura da curva do elbow e com a interpretacao posterior dos centroides.
 
-\placeholderfig{Visualizacao em PCA dos pontos agrupados por cluster.}{Clusters projetados em duas dimensoes}
-\placeholderfig{Perfil dos centroides por feature para interpretar cada cluster.}{Centroides dos clusters}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/image.png}
+    \caption{Clusters projetados em duas dimensoes (PCA)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/k_means_features.png}
+    \caption{Centroides dos clusters por feature}
+\end{figure}
 
 \subsubsection*{Interpretacao dos clusters}
-Para tornar os clusters interpretaveis, o workflow devolve os centroides a forma longa, cria graficos de barras e junta o genero musical para verificar composicao de cada grupo. Esta parte e essencial porque um cluster sem leitura semantica tem pouco valor analitico. Em paralelo, o \texttt{Cluster Assigner} aplica o modelo de clustering ao dataset B e permite analisar a composicao \texttt{Cluster} \textrightarrow \texttt{genre} e \texttt{Cluster} \textrightarrow \texttt{Prediction (genre)}.
+Para tornar os clusters interpretaveis, o workflow devolve os centroides a forma longa, cria graficos de barras e junta o genero musical para verificar composicao de cada grupo. Esta parte e essencial porque um cluster sem leitura semantica tem pouco valor analitico.
 
-A qualidade do agrupamento foi analisada adicionalmente com silhouette. O metodo hierarquico sobre uma amostra obteve um valor medio global de aproximadamente \textbf{0.0732}, o que e baixo e sugere sobreposicao entre grupos. Em ramos de amostragem estratificada por cluster, surgem valores de cerca de \textbf{0.1609}, \textbf{0.1782} e \textbf{0.1740}, que continuam modestos mas sao superiores ao primeiro valor observado. Isto mostra que o clustering tem utilidade exploratoria, mas nao apresenta separacao perfeita entre classes sonoras.
+A qualidade do agrupamento foi analisada adicionalmente com silhouette. O metodo hierarquico sobre uma amostra obteve um valor medio global de aproximadamente \textbf{0.0732}, o que e baixo e sugere sobreposicao entre grupos. Na comparacao entre k = 4, 5 e 6, os valores globais observados foram aproximadamente \textbf{0.174}, \textbf{0.178} e \textbf{0.161}, respetivamente, o que suporta a escolha de \textbf{k = 5} como compromisso.
 
-\placeholderfig{Resultado de silhouette para a comparacao entre solucoes de clustering.}{Silhouette e qualidade do agrupamento}
-\placeholderfig{Composicao dos clusters por genero musical.}{Distribuicao dos generos por cluster}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imgs/4clusters.png}
+    \caption{Silhouette para k = 4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imgs/5clusters.png}
+    \caption{Silhouette para k = 5}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imgs/6clusters.png}
+    \caption{Silhouette para k = 6}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{imgs/clusters.png}
+    \caption{Distribuicao dos generos por cluster}
+\end{figure}
 
 \subsubsection*{Comparacao hierarquica}
 O workflow inclui ainda um ramo de clustering hierarquico com distancia euclidiana e linkage complete. Este ramo nao substitui o k-Means final, mas serve para comparar a qualidade da segmentacao. A leitura critica deste valor de silhouette e importante: o objetivo nao e apenas escolher um algoritmo, mas perceber se a estrutura dos dados suporta clusters nitidos ou se existe uma sobreposicao natural entre estilos musicais.
 
-\subsection{Classificacao supervisionada de genero}
-O objetivo supervisionado e prever \texttt{genre}. O modelo usado e um RProp MLP treinado no dataset A. O dataset B e usado como teste externo, com \textit{Normalizer (Apply)} para garantir consistencia de escala. Esta configuracao mede generalizacao entre datasets e evita fuga de informacao.
+\subsection{Regressao supervisionada de popularidade}
+O objetivo supervisionado e prever \texttt{popularity}. O workflow inclui um ramo de regressao linear e um ramo de arvore de regressao, ambos avaliados com \textit{Numeric Scorer}. A normalizacao e feita no treino e aplicada ao teste para evitar fuga de informacao.
 
-\placeholderfig{Ramo de classificacao supervisionada com treino no A e teste no B.}{Classificacao de genero no KNIME}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{imgs/regretion.png}
+    \caption{Ramo de regressao no KNIME}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/regressionlinear.png}
+    \caption{Regressao linear: real vs previsto}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/regressionlinearh.png}
+    \caption{Regressao linear: distribuicao dos residuos}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/regressionlinearscorer.png}
+    \caption{Metricas da regressao linear}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/regressiontreeplot.png}
+    \caption{Arvore de regressao: real vs previsto}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/regressiontreeh.png}
+    \caption{Arvore de regressao: distribuicao dos residuos}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/simpleregressionscorer.png}
+    \caption{Metricas da arvore de regressao}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/randonforestplot.png}
+    \caption{Random forest: real vs previsto}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/randomforesth.png}
+    \caption{Random forest: distribuicao dos residuos}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/randomforestscorer.png}
+    \caption{Metricas da random forest}
+\end{figure}
 
 \section{Resultados e analise critica}
 \subsection{Resumo dos resultados mais relevantes}
@@ -223,29 +335,31 @@ Tamanho inicial do dataset & 100\,500 registos e 21 colunas \\
 Duplicados removidos & 500 linhas \\
 Base comum apos preparacao & 99\,353 linhas e 15 colunas \\
 Ramo de clustering & 99\,353 linhas e 10 features normalizadas \\
-Split treino/teste & 70/30, estratificado por \texttt{genre}, seed 42 \\
+Split treino/teste & 80/20, estratificado por \texttt{popularity\_class}, seed 1 \\
 Silhouette hierarquico & aproximadamente 0.0732 \\
-Silhouettes adicionais & aproximadamente 0.1609, 0.1782 e 0.1740 \\
+Silhouettes adicionais (k = 4, 5, 6) & aproximadamente 0.174, 0.178 e 0.161 \\
 Cluster final & \textit{k} = 5 \\
-Classificacao A \textrightarrow B & accuracy de 0.6156 e kappa de 0.5788 \\
+Regressao linear & R2 de 0.018 e RMSE de 17.679 \\
+Arvore de regressao & R2 de -1.092 e RMSE de 25.803 \\
+Random forest & R2 de 0.0 e RMSE de 17.842 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Leitura critica do clustering}
-Os resultados de clustering mostram que existe estrutura nos dados, mas a separacao nao e perfeita. Um silhouette perto de 0.07 e um sinal de clusters relativamente sobrepostos, o que faz sentido num dataset musical: as faixas podem partilhar intensidades semelhantes de energia, valencia e dançabilidade, sem que isso se traduza em grupos radicalmente distintos. Em termos práticos, isto significa que o clustering e mais util como ferramenta de segmentacao e exploracao do que como classificacao rigorosa e definitiva.
+Os resultados de clustering mostram que existe estrutura nos dados, mas a separacao nao e perfeita. Um silhouette perto de 0.07 e um sinal de clusters relativamente sobrepostos, o que faz sentido num dataset musical: as faixas podem partilhar intensidades semelhantes de energia, valencia e dancabilidade, sem que isso se traduza em grupos radicalmente distintos. Em termos praticos, isto significa que o clustering e mais util como ferramenta de segmentacao e exploracao do que como rotulagem rigorosa e definitiva.
 
-Ao mesmo tempo, a forte accuracy do classificador auxiliar sugere que, apesar da sobreposicao observada no silhouette, os clusters sao suficientemente estruturados para serem reaprendidos por um modelo supervisionado. Esta combinacao de sinais e interessante: os clusters nao sao perfeitamente separados no espaco geometrico, mas ainda assim mantem uma identidade suficiente para uso operacional.
+Os clusters nao sao perfeitamente separados no espaco geometrico, mas ainda assim mantem uma identidade suficiente para uso operacional como segmentacao exploratoria.
 
-\subsection{Leitura critica da classificacao de genero}
-O teste A \textrightarrow B mede generalizacao entre datasets. O valor de accuracy (0.6156) e kappa (0.5788) indica desempenho moderado, com variacao por genero. Esta leitura e esperada em dados musicais: alguns generos apresentam perfis acusticos consistentes, enquanto outros se misturam mais, reduzindo a precisao. O resultado deve ser interpretado como capacidade de generalizacao e nao como prova de superioridade sobre o clustering.
+\subsection{Leitura critica da regressao de popularidade}
+Os resultados de regressao mostram capacidade limitada de explicacao da variabilidade de \texttt{popularity}. O R2 baixo na regressao linear sugere que a relacao entre features acusticas e popularidade e fraca ou nao linear, enquanto a arvore de regressao apresenta desempenho inferior neste estado. Estes sinais sao consistentes com um target influenciado por fatores externos ao audio (marketing, contexto cultural e exposicao).
 
 \subsection{Limitações do estudo}
 A principal limitacao e que o dataset e sintético, ainda que inspirado em distribuicoes realistas. Isso e util para treino, mas nao substitui completamente um catalogo real com variacoes de metadata mais complexas. Outra limitacao e a ausencia, no estado atual do workflow, de uma tabela unica consolidada com metrias de regressao finalizadas. Por fim, o trabalho analisa associacoes e padroes, mas nao pode afirmar causalidade entre as features e a popularidade.
-Outra limitacao e a comparacao entre tarefas distintas: clustering e classificacao respondem a perguntas diferentes. Por isso, a comparacao deve ser qualitativa (interpretacao dos clusters) e nao quantitativa por accuracy.
+Outra limitacao e a comparacao entre tarefas distintas: clustering e regressao respondem a perguntas diferentes. Por isso, a comparacao deve ser qualitativa (interpretacao dos clusters) e nao quantitativa por uma unica metrica.
 
 \section{Sugestoes e recomendacoes}
-Recomenda-se testar diferentes valores de \textit{k} e seeds para avaliar estabilidade dos clusters e acrescentar uma analise de percentagens por cluster (normalizacao por cluster). No ramo supervisionado, seria util testar um baseline simples (por exemplo, regressao logistica ou random forest de classificacao) para comparar com o MLP. Estas extensoes nao sao obrigatorias para concluir o relatorio, mas ajudam a consolidar a interpretacao.
+Recomenda-se testar diferentes valores de \textit{k} e seeds para avaliar estabilidade dos clusters e acrescentar uma analise de percentagens por cluster (normalizacao por cluster). No ramo de regressao, seria util consolidar as metricas numa tabela comparativa unica e testar tuning de hiperparametros para reduzir o erro. Estas extensoes nao sao obrigatorias para concluir o relatorio, mas ajudam a consolidar a interpretacao.
 
 \section{Reprodutibilidade}
 Para reproduzir o trabalho, basta seguir a sequencia geral do workflow. Primeiro, abrir o ficheiro do KNIME relativo ao dataset de grupo. Depois, executar o bloco de \textit{data understanding} para confirmar leitura, distribuicoes e duplicados. Em seguida, correr o pipeline de preparacao na ordem definida: remocao de duplicados, expression, missing value, numeric outliers e filtragem final. Depois, correr separadamente o ramo de clustering e o ramo de regressao, garantindo que a normalizacao e a particao sao executadas antes dos modelos.
@@ -253,6 +367,6 @@ Para reproduzir o trabalho, basta seguir a sequencia geral do workflow. Primeiro
 Os ficheiros que sustentam a reproducao sao o CSV principal, o log de erros, o script de geracao e o workflow KNIME. No caso de querer repetir a analise de raiz, convem confirmar se os caminhos dos ficheiros estao corretos e se as ligacoes no KNIME apontam para a pasta do projeto.
 
 \section{Conclusao}
-O trabalho desenvolvido sobre o dataset de grupo mostra um processo CRISP-DM completo: compreensao do problema, exploracao e preparacao, modelacao e avaliacao. O clustering permite segmentar perfis acusticos e a classificacao supervisionada mede a capacidade de generalizacao A \textrightarrow B. A interpretacao por clusters complementa a avaliacao quantitativa e evita comparacoes indevidas entre tarefas diferentes. O resultado e um workflow coerente, reproduzivel e alinhado com boas praticas de analise de dados.
+O trabalho desenvolvido sobre o dataset de grupo mostra um processo CRISP-DM completo: compreensao do problema, exploracao e preparacao, modelacao e avaliacao. O clustering permite segmentar perfis acusticos e a regressao supervisionada mede o quanto as features explicam \texttt{popularity}. A interpretacao por clusters complementa a avaliacao quantitativa e evita comparacoes indevidas entre tarefas diferentes. O resultado e um workflow coerente, reproduzivel e alinhado com boas praticas de analise de dados.
 
 \end{document}
