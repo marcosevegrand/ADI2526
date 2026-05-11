@@ -1,3 +1,9 @@
+
+
+# ignorar auxiliares do LaTeX
 relatorio.*
 !relatorio.tex
 !relatorio.pdf
+
+# ignorar ficheiros locais
+*.local*
