@@ -6,7 +6,7 @@ relatorio.*
 !relatorio.pdf
 
 # ignorar ficheiros locais
-*.local*
+*.local
 
 # ambiente virtual local
 .venv/

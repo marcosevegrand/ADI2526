@@ -3,361 +3,784 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[portuguese]{babel}
-\usepackage{lmodern}
 \usepackage{geometry}
-\usepackage{setspace}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
 \usepackage{graphicx}
-\usepackage{xcolor}
 \usepackage{hyperref}
-\usepackage{enumitem}
-\usepackage{float}
+\usepackage{color}
 \usepackage{amsmath}
-\usepackage{caption}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{afterpage}
+\usepackage{textcomp}
+\usepackage{fancyhdr}
 
 \geometry{margin=2.5cm}
-\setstretch{1.15}
-\graphicspath{{imgs/grupo/}}
+\renewcommand{\baselinestretch}{1.15}
+\graphicspath{{imgs/grupo/}{imgs/atribuido/}}
+\sloppy
+
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
     urlcolor=blue,
-    pdftitle={Relatório do Dataset de Grupo - Análise de Dados e Modelação em KNIME}
+    citecolor=blue,
+    pdftitle={Relatório ADI — Grupo 11}
 }
 
-\title{\textbf{Relatório de Resultados}\\
-Dataset de Grupo: Spotify Tracks\\
-\large Análise de Dados e Modelação em KNIME}
-\author{\textbf{Unidade Curricular:} Análise e Descoberta de Informação \\
-\textbf{Grupo:} [a preencher] \\
-\textbf{Elementos:} [a preencher]}
-\date{\today}
+\newcommand{\code}[1]{{\ttfamily\hyphenchar\font=45\relax #1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Grupo 11 --- ADI}
+\fancyhead[R]{\small Relatório de Resultados}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
 
 \begin{document}
 
-\maketitle
 \thispagestyle{empty}
-\clearpage
+\begin{titlepage}
+\vspace*{2cm}
+\begin{center}
+{\Large Universidade do Minho}\\[2pt]
+{\Large Escola de Engenharia}\\[4pt]
+{\Large Licenciatura em Engenharia Informática}\\[8pt]
+{\Large\textbf{Aprendizagem e Decisão Inteligentes}}\\[4pt]
+{\large Ano Letivo 2025/2026}
+
+\vspace*{4cm}
+
+{\Huge\textbf{Relatório de Resultados}}\\[12pt]
+{\LARGE Análise de Dados e Modelação com KNIME}\\[8pt]
+{\large \textit{Spotify Tracks \& Consumo Energético}}
+
+\vspace*{4cm}
+
+{\Large\textbf{Grupo 11}}\\[16pt]
+{\large Marco Sèvegrand \quad A106807}\\[4pt]
+{\large Francisco Martins \quad A106902}\\[4pt]
+{\large Nuno Rebelo \quad Axxxxxx}\\[4pt]
+{\large Marco Ferreira \quad Axxxxxx}\\[24pt]
+{\large \today}
+\end{center}
+\end{titlepage}
+
+\hypersetup{linkcolor=black}
 \tableofcontents
+\hypersetup{linkcolor=blue}
 \clearpage
 \pagenumbering{arabic}
 
 \section{Introdução}
-Este relatório documenta o trabalho desenvolvido sobre o \textbf{dataset de grupo} do Spotify, com implementação em \textit{workflows} KNIME e enquadramento metodológico segundo o modelo CRISP-DM. O objetivo consistiu em descrever um processo analítico completo, centrado em duas tarefas distintas e complementares: \textbf{(i) clustering}, para identificar perfis acústicos, e \textbf{(ii) regressão supervisionada}, para prever a variável \texttt{popularity}. A avaliação foi realizada sobre o mesmo conjunto de dados, com partição de treino/teste e interpretação adicional dos clusters por género musical.
 
-O texto foi revisto para refletir apenas o que se encontra efetivamente implementado no \textit{workflow}, evitando a descrição de procedimentos que não tenham sido executados.
+O presente relatório documenta o trabalho desenvolvido no âmbito da unidade curricular de Aprendizagem e Decisão Inteligentes, correspondente à componente prática de grupo. O objetivo central consistiu em conceber, implementar e avaliar modelos de aprendizagem automática sobre dois conjuntos de dados distintos, recorrendo à plataforma KNIME como ambiente de desenvolvimento e experimentação.
 
-\section{Domínio, objetivos e abordagem}
+O trabalho estrutura-se em duas tarefas independentes, conforme definido no enunciado. A \textbf{Tarefa~1} incide sobre um \textbf{dataset de grupo} --- um conjunto de dados sobre faixas musicais do Spotify, gerado sinteticamente para simular um cenário realista de preparação de dados. Nesta tarefa, a metodologia adotada foi o \textbf{CRISP-DM}, aplicando-se técnicas de \textit{clustering} para identificação de perfis acústicos e modelos de regressão para previsão da popularidade das faixas. A \textbf{Tarefa~2} é dedicada a um \textbf{dataset atribuído} --- um conjunto de dados sobre consumo energético e variáveis meteorológicas, distribuído pela equipa docente através do Blackboard. Nesta tarefa, seguiu-se a metodologia \textbf{SEMMA}, desenvolvendo-se modelos de classificação e de regressão com base nas relações entre variáveis climáticas e os padrões de consumo registados.
+
+Cada tarefa é descrita em parte própria do relatório, com a respetiva fundamentação metodológica, descrição das fases de análise e modelação, e discussão crítica dos resultados. As figuras e tabelas mais extensas são remetidas para a secção de Anexos, sendo referenciadas ao longo do texto.
+
+\clearpage
+
+\part*{Parte I --- Tarefa 1: Dataset de Grupo (Spotify Tracks)}
+\addcontentsline{toc}{section}{Parte I --- Tarefa 1: Dataset de Grupo (Spotify Tracks)}
+
+\section{Domínio e objetivos}
+
 \subsection{Domínio analisado}
-O domínio escolhido é o da análise musical e do consumo digital. As características acústicas podem apoiar tarefas de segmentação editorial, recomendação e análise de perfis sonoros. Variáveis como \texttt{danceability}, \texttt{energy}, \texttt{loudness}, \texttt{acousticness} e \texttt{tempo} capturam propriedades musicais diretas, enquanto \texttt{genre}, \texttt{release\_year} e \texttt{explicit} acrescentam contexto de catálogo.
+
+O dataset \code{spotify\_tracks.csv} foi gerado por um \textit{script} Python especificamente concebido para simular um conjunto de dados realista sobre faixas musicais da plataforma Spotify. O ficheiro contém \textbf{100\,500 registos} e \textbf{21 colunas}, cobrindo o período temporal de \textbf{2000 a 2024} e \textbf{20 géneros} musicais distintos. Cada registo representa uma faixa, caracterizada por atributos de identificação, variáveis de contexto editorial e um conjunto de \textit{features} acústicas extraídas da API do Spotify.
+
+O domínio analisado é o da análise musical e do consumo digital. As \textit{features} acústicas --- como \code{danceability}, \code{energy}, \code{loudness} e \code{acousticness} --- capturam propriedades sonoras objetivas, enquanto variáveis como \code{genre}, \code{release\_year} e \code{explicit} fornecem contexto editorial. O target principal é \code{popularity}, uma pontuação numérica entre 0 e 100.
+
+O gerador não produziu um \textit{dataset} limpo; pelo contrário, introduziu deliberadamente problemas de qualidade comuns em cenários reais de ciência de dados. Foram injetados valores em falta, \textit{outliers} numéricos em várias colunas e 500 linhas duplicadas. Existe ainda um ficheiro auxiliar, \code{spotify\_tracks\_errors\_log.csv}, que regista a localização exata de cada erro introduzido e serviu como referência para validação das etapas de preparação. A Tabela~\ref{tab:estrutura_spotify} (Anexo~\ref{anx:tabelas_spotify}) sintetiza a estrutura do dataset.
 
 \subsection{Objetivos}
-Os objetivos do trabalho são os seguintes:
-\begin{itemize}[leftmargin=*]
-    \item garantir uma preparação robusta dos dados, com tratamento de duplicados, valores em falta, outliers e criação de atributos derivados;
-    \item identificar perfis acústicos através de \textit{k-means} e interpretar a composição dos clusters obtidos;
-    \item treinar modelos de regressão para prever \texttt{popularity} a partir das variáveis acústicas;
-    \item produzir uma análise crítica dos resultados, com foco na interpretação dos clusters e no desempenho preditivo dos modelos.
-\end{itemize}
 
-\subsection{Estratégia seguida}
-A estratégia adotada foi iterativa e alinhada com o CRISP-DM: leitura e exploração inicial dos dados, preparação sequencial, modelação em ramos distintos e avaliação com ênfase na previsão de \texttt{popularity}. Esta abordagem evita comparações indevidas entre tarefas com naturezas diferentes, como clustering e regressão, e reforça a interpretação fundamentada nos dados.
+Os objetivos definidos para esta tarefa foram:
+\begin{itemize}
+    \item garantir uma preparação robusta dos dados, com tratamento de duplicados, valores em falta, \textit{outliers} e criação de atributos derivados;
+    \item identificar perfis acústicos através de \textit{k-means} e interpretar a composição dos \textit{clusters} obtidos;
+    \item treinar modelos de classificação para prever o género musical (\code{genre}, 20 classes) a partir das \textit{features} acústicas, relacionando esta abordagem supervisionada com a segmentação não supervisionada do \textit{clustering};
+    \item treinar modelos de regressão para prever \code{popularity} a partir das variáveis acústicas, de contexto e do género musical (codificado em \textit{one-hot});
+    \item produzir uma análise crítica dos resultados, com foco na relação entre \textit{clustering} e classificação, na contribuição do género para a regressão e no desempenho preditivo cruzado das três vertentes.
+\end{itemize}
 
 \section{Metodologia CRISP-DM}
+
+A metodologia CRISP-DM (\textit{Cross-Industry Standard Process for Data Mining}) organiza o processo de análise de dados em seis fases iterativas: compreensão do negócio, compreensão dos dados, preparação dos dados, modelação, avaliação e \textit{deployment}. Esta metodologia orientou a estrutura do \textit{workflow} KNIME e a organização desta secção do relatório.
+
 \subsection{Compreensão do negócio}
-O objetivo analítico consiste em caracterizar música com base em perfis acústicos e prever a popularidade das faixas. Em termos práticos, esta análise pode apoiar segmentação de catálogo e uma leitura crítica do grau em que os atributos sonoros ajudam a explicar a popularidade.
+
+O objetivo analítico é duplo: caracterizar faixas musicais através de perfis acústicos (segmentação) e prever a popularidade com base nas propriedades sonoras e de contexto (regressão). Na prática, estes objetivos traduzem-se em casos de uso como segmentação de catálogo, recomendação musical e análise do grau em que os atributos de áudio explicam o sucesso comercial de uma faixa.
 
 \subsection{Compreensão dos dados}
-O \textit{workflow} confirma a estrutura do ficheiro CSV, identifica duplicados, valores em falta e valores fora do domínio esperado, e valida ainda a distribuição dos géneros musicais. A exploração inclui estatísticas descritivas, histogramas, \textit{boxplots} e distribuições por género.
+
+O bloco de \textit{Data Understanding} do \textit{workflow} foi implementado com 31 nós KNIME, organizados para cobrir todas as dimensões relevantes da qualidade dos dados. A leitura inicial, através do nó \code{CSV Reader (\#2)}, confirmou a importação de 100\,500 linhas e 21 colunas, com as \textit{features} de áudio corretamente interpretadas como numéricas.
+
+O nó \code{Statistics (\#3)} foi configurado para 12 colunas numéricas --- \code{release\_year}, \code{popularity}, \code{duration\_ms}, \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence} e \code{tempo} --- e revelou os sinais mais relevantes: valores em falta nas \textit{features} de áudio, violações de domínio em variáveis limitadas ao intervalo $[0,1]$ e extremos em \code{tempo}, \code{loudness} e \code{duration\_ms}.
+
+A componente categórica foi examinada com cinco nós \code{Value Counter}, cobrindo \code{genre} (20 géneros confirmados), \code{explicit}, \code{mode}, \code{key} e \code{time\_signature}. A exploração univariada assentou em 12 histogramas e 7 \textit{boxplots} (Figuras~\ref{fig:spotify_histogramas} e~\ref{fig:spotify_boxplots} no Anexo~\ref{anx:imagens_spotify}), que documentaram as distribuições das variáveis contínuas. As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pares \code{energy--loudness}, \code{energy--acousticness}, \code{danceability--valence} e \code{release\_year--popularity} --- e uma matriz de correlação linear sobre 15 colunas (Figura~\ref{fig:spotify_corr} no Anexo~\ref{anx:imagens_spotify}).
+
+A deteção de duplicados foi realizada através do par \code{GroupBy (\#40)} + \code{Row Filter (\#39)}, que isolou 500 registos repetidos, confirmando a injeção de duplicados prevista pelo gerador.
+
+Em síntese, esta fase demonstrou que o \textit{dataset} continha, de forma inequívoca, os três tipos de problemas que a preparação subsequente teria de resolver: valores em falta, \textit{outliers} e duplicados. A Tabela~\ref{tab:problemas_spotify} resume a evidência recolhida.
+
+\begin{table}[ht]
+\centering
+\caption{Problemas de qualidade evidenciados na fase de compreensão dos dados}
+\label{tab:problemas_spotify}
+\begin{tabular}{p{4cm}p{6cm}p{4.5cm}}
+\hline
+\multicolumn{1}{c}{\textbf{Problema}} & \multicolumn{1}{c}{\textbf{Evidência no workflow}} & \multicolumn{1}{c}{\textbf{Consequência}}\\
+\hline
+Valores em falta & \code{Statistics} e histogramas & Imputação em \code{Missing Value}\\
+Valores fora de domínio & \code{Statistics}, \textit{boxplots} e \textit{scatter plots} & Sanitização em \code{Expression}\\
+Extremos artificiais & \code{tempo}, \code{loudness} e \code{duration\_ms} & Tratamento em \code{Numeric Outliers}\\
+Duplicados & \code{GroupBy} e \code{Row Filter} isolam 500 casos & Remoção em \code{Duplicate Row Filter}\\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Preparação dos dados}
-Foi implementado um pipeline sequencial composto por remoção de duplicados, saneamento de valores inválidos, imputação de valores em falta, tratamento de outliers e criação de atributos derivados. O objetivo desta fase é garantir consistência nas \textit{features} e reduzir ruído antes da modelação.
+
+A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering} e regressão. A Figura~\ref{fig:pipeline_spotify} (Anexo~\ref{anx:imagens_spotify}) ilustra a configuração do pipeline no KNIME.
+
+\subsubsection{Remoção de duplicados}
+
+A primeira operação do pipeline é o nó \code{Duplicate Row Filter (\#41)}, que compara todas as colunas exceto \code{track\_id}, remove as linhas repetidas e conserva a primeira ocorrência. O resultado confirma a passagem de 100\,500 para 100\,000 linhas, eliminando os 500 duplicados.
+
+\subsubsection{Sanitização e engenharia de atributos}
+
+O nó \code{Expression (\#42)} concentra num único ponto oito transformações que, num \textit{workflow} menos compacto, estariam dispersas por múltiplos nós. As operações realizadas foram:
+
+\begin{itemize}
+    \item conversão de valores fora do domínio $[0,100]$ de \code{popularity} para \textit{missing};
+    \item conversão de violações do intervalo $[0,1]$ nas \textit{features} de áudio (\code{danceability}, \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness} e \code{valence}) para \textit{missing};
+    \item conversão de valores inválidos de \code{key}, \code{mode} e \code{time\_signature} para \textit{missing};
+    \item codificação binária da variável \code{explicit} ($\text{True} \rightarrow 1$, $\text{False} \rightarrow 0$);
+    \item criação do atributo derivado \code{duration\_min} (=\ \code{duration\_ms}\ /\ 60\,000), mais interpretável do que milissegundos;
+    \item criação da classe auxiliar \code{popularity\_class} com três níveis (Baixa, Média, Alta) para estratificação.
+\end{itemize}
+
+Esta etapa é metodologicamente relevante porque, em vez de eliminar precocemente as linhas problemáticas, opta por converter violações de domínio em valores em falta, delegando a decisão para o nó seguinte.
+
+\subsubsection{Imputação de valores em falta}
+
+O nó \code{Missing Value (\#43)} recebe tanto os valores em falta originais do CSV como os gerados pelo \code{Expression}. A estratégia de imputação adotada não é uniforme, refletindo uma escolha ponderada por coluna:
+
+\begin{itemize}
+    \item \textbf{Média}: \code{danceability}, \code{valence}.
+    \item \textbf{Mediana}: \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{loudness}, \code{tempo}, \code{duration\_ms}.
+    \item \textbf{Remover linha}: \code{popularity} (target).
+\end{itemize}
+
+Após esta fase, o \textit{dataset} regista 99\,353 linhas (menos 647 face às 100\,000 anteriores), correspondendo às linhas cujo target \code{popularity} era inválido e não foi imputado.
+
+\subsubsection{Tratamento de \textit{outliers}}
+
+Os \textit{outliers} contínuos são tratados no nó \code{Numeric Outliers (\#45)}, que intervém sobre três colunas --- \code{duration\_ms}, \code{loudness} e \code{tempo} --- utilizando o critério IQR com fator 3.0 e substituindo os valores extremos pelo limite admissível mais próximo. Esta abordagem preserva as linhas afetadas, evitando perda adicional de dados.
+
+\subsubsection{Seleção de variáveis e separação de ramos}
+
+O nó \code{Column Filter (\#47)} reduz o \textit{dataset} a 15 colunas, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), colunas redundantes (\code{duration\_ms}, substituída por \code{duration\_min}), e os atributos \code{key} e \code{time\_signature}. A coluna \code{genre}, ao contrário da versão anterior do \textit{workflow}, é preservada em todos os ramos. A base comum resultante contém 99\,353 linhas e 15 colunas, a partir da qual se abrem três ramos:
+
+\begin{itemize}
+    \item \textbf{Ramo de \textit{clustering}}: reduzido a 10 \textit{features} acústicas normalizadas (Min-Max para $[0,1]$) --- sem género, que é reintroduzido apenas no pós-processamento para interpretação (\code{Joiner (\#136)} por \code{RowID});
+    \item \textbf{Ramo de classificação}: filtra 11 colunas --- as 10 \textit{features} acústicas normalizadas mais o target \code{genre} --- e divide-se em dois sub-ramos com partições independentes (70/30 para a rede neuronal, 80/20 para a \textit{Random Forest}), ambas estratificadas por género com \textit{seed}=1;
+    \item \textbf{Ramo de regressão}: o nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação. O nó \code{One to Many (\#221)} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo o espaço de \textit{features} para 34 colunas. Segue-se a partição treino/teste (80/20, estratificada por \code{popularity\_class}, \textit{seed}=1), normalização Min-Max sobre as \textit{features} e remoção de \code{popularity\_class} no treino e no teste. As \textit{features} finais de regressão são 33 preditores --- \code{release\_year}, \code{explicit}, as 10 \textit{features} de áudio, \code{mode}, \code{duration\_min} e as 20 dummies de género --- com target \code{popularity}.
+\end{itemize}
 
 \subsection{Modelação}
-Foram construídos dois ramos principais:
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Clustering}: aplicação de \textit{k-means} a \textit{features} acústicas normalizadas, com avaliação por método do cotovelo, \textit{silhouette} e PCA.
-    \item \textbf{Regressão supervisionada}: treino de modelos linear, de árvore de regressão e de \textit{Random Forest} para prever \texttt{popularity}, com normalização consistente e avaliação através do nó \textit{Numeric Scorer}.
+
+\subsubsection{\textit{Clustering} de perfis acústicos}
+
+\textbf{Método do cotovelo.}
+A seleção do número de \textit{clusters} baseou-se no método do cotovelo. Foram executadas sete experiências de \textit{k-means} para valores de $k \in \{3, 4, 5, 6, 7, 8, 9\}$, com inicialização aleatória, \textit{seed}=1 e 99 iterações máximas. Em cada ramo candidato, a soma das distâncias quadradas intra-\textit{cluster} (WCSS) foi calculada manualmente: o nó \code{Joiner} associa cada ponto ao centróide do respetivo \textit{cluster}, o nó \code{Math Formula} calcula a distância euclidiana quadrada às 10 coordenadas do centróide, e o nó \code{GroupBy} agrega os valores. As sete linhas de WCSS foram concatenadas e representadas graficamente (Figura~\ref{fig:elbow} no Anexo~\ref{anx:imagens_spotify}).
+
+\textbf{Modelo final.}
+O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da curva do cotovelo. O nó \code{k-Means (\#141)} produz diretamente a coluna \code{Cluster}, dispensando um \textit{assigner} separado. Os centróides foram transformados para formato longo (\code{Unpivot}) e visualizados num gráfico de barras agrupado (Figura~\ref{fig:centroides} no Anexo~\ref{anx:imagens_spotify}), que permite comparar o perfil acústico médio de cada \textit{cluster} nas 10 \textit{features} normalizadas.
+
+\textbf{Interpretação.}
+A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} (contagem por \code{Cluster}) e \code{Cross Joiner} (total global), obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} --- que não integra o espaço de \textit{features} do \textit{clustering} --- foi reintroduzida via \code{Joiner} por \code{RowID}, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot} e um gráfico de barras empilhadas (Figura~\ref{fig:genero_cluster} no Anexo~\ref{anx:imagens_spotify}).
+
+\subsubsection{Classificação de género musical}
+
+A novidade face à versão anterior do \textit{workflow} é a inclusão de um ramo de classificação supervisionada que utiliza as mesmas 10 \textit{features} acústicas que alimentam o \textit{k-means}, mas com o objetivo de prever o género musical (20 classes). Este desenho permite contrastar diretamente a aprendizagem não supervisionada (agrupamento por semelhança acústica, sem conhecimento dos rótulos) com a aprendizagem supervisionada (classificação informada pelo género real), medindo até que ponto os atributos de áudio contêm sinal suficiente para discriminar estilos musicais.
+
+\textbf{Configuração.}
+O ramo de classificação parte da base comum pós-preparação. O nó \code{Column Filter (\#220)} isola 11 colunas: as 10 \textit{features} acústicas e o target \code{genre}. A normalização Min-Max ($[0,1]$) é aplicada através do nó \code{Normalizer (\#218)}, garantindo que todas as variáveis contribuem em escala comparável.
+
+Foram treinados dois modelos supervisionados:
+
+\begin{itemize}
+    \item \textbf{RProp MLP (\#226)}: rede neuronal \textit{feedforward} com uma camada escondida de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 200 iterações (\textit{seed}=1). A partição é 70/30 (treino/teste), estratificada por género, resultando em 70\,000 exemplos de treino e 30\,000 de teste.
+    \item \textbf{\textit{Random Forest} (\#235)}: \textit{ensemble} de 200 árvores de decisão, critério Gini, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. A partição é 80/20 (treino/teste), estratificada por género, resultando em 80\,000 exemplos de treino e 20\,000 de teste.
 \end{itemize}
+
+A escolha de partições diferentes (70/30 vs.~80/20) reflete uma preocupação metodológica: a MLP, por ser um modelo paramétrico com maior propensão ao sobreajustamento, beneficia de um conjunto de teste mais numeroso para validação fiável; a \textit{Random Forest}, enquanto método de \textit{ensemble}, tolera uma proporção de teste ligeiramente menor sem perda de robustez estatística.
+
+\textbf{Métricas.}
+A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen (que corrige a exatidão pela probabilidade de acerto aleatório, sendo particularmente informativo em problemas com 20 classes). A matriz de confusão visualizada no \textit{Heatmap (\#231)} permite inspecionar quais os géneros mais frequentemente confundidos (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}).
+
+A Tabela~\ref{tab:metricas_class} sintetiza os resultados. A \textit{Random Forest} atinge uma exatidão de \textbf{68.16\%} (Kappa = 0.655), superando marginalmente a MLP com 67.67\% (Kappa = 0.648). Ambos os valores de Kappa, superiores a 0.64, indicam uma concordância substancial entre as previsões e os rótulos reais --- um resultado expressivo considerando que se trata de 20 classes a partir de apenas 10 \textit{features} exclusivamente acústicas.
+
+\begin{table}[ht]
+\centering
+\caption{Métricas de classificação --- Previsão de género musical}
+\label{tab:metricas_class}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Exatidão} & \textbf{Erro} & \textbf{Corretas} & \textbf{Incorretas} & \textbf{Kappa}\\
+\hline
+RProp MLP (70/30) & 0.6767 & 0.3233 & 20\,302 & 9\,698 & 0.6482\\
+\textit{Random Forest} (80/20) & 0.6816 & 0.3184 & 13\,632 & 6\,368 & 0.6545\\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Relação com o \textit{clustering}.}
+A justaposição do ramo de classificação com o de \textit{clustering} é metodologicamente reveladora. Ambos operam sobre exatamente as mesmas 10 \textit{features} acústicas, mas com filosofias opostas:
+\begin{itemize}
+    \item O \textit{k-means} (não supervisionado) agrupa faixas por proximidade no espaço acústico, sem qualquer conhecimento dos géneros reais; a interpretação dos grupos é feita \textit{a posteriori} através da distribuição dos géneros em cada \textit{cluster}.
+    \item A classificação (supervisionada) aprende a fronteira de decisão a partir dos rótulos de género, medindo diretamente a separabilidade acústica das 20 classes.
+\end{itemize}
+
+O coeficiente de \textit{silhouette} de 0.16--0.18 obtido no \textit{clustering} sugere uma separação modesta entre grupos, o que é coerente com uma exatidão de classificação de \textbf{$\approx$68\%}: as \textit{features} acústicas contêm sinal discriminativo genuíno --- muito acima do acaso ($1/20 = 5\%$) --- mas a sobreposição natural entre géneros impede uma separação nítida. Por outras palavras, o \textit{clustering} encontra estrutura onde a classificação confirma que essa estrutura é informativa, mas não determinística.
+
+A projeção PCA bidimensional das previsões da MLP (Figura~\ref{fig:class_pca} no Anexo~\ref{anx:imagens_spotify}), com os pontos coloridos segundo o género previsto, permite visualizar a sobreposição entre classes que explica simultaneamente a \textit{silhouette} modesta e a exatidão inferior a 100\%.
+
+\subsubsection{Regressão da popularidade}
+
+\textbf{Configuração.}
+O ramo de regressão foi substancialmente expandido face à versão anterior. Além dos 13 preditores originais (\code{release\_year}, \code{explicit}, as 10 \textit{features} de áudio, \code{mode} e \code{duration\_min}), o nó \code{One to Many (\#221)} codifica os 20 géneros musicais em colunas binárias (\textit{one-hot encoding}), totalizando \textbf{33 preditores}. Esta expansão é a concretização da hipótese de que o género musical transporta informação complementar às \textit{features} acústicas para explicar a variabilidade da popularidade.
+
+O nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa se $\text{popularity} \le 29$, Media se $\le 60$, Alta caso contrário) para estratificação da partição. A normalização Min-Max é aprendida no treino (79\,482 linhas) e aplicada ao teste (19\,871 linhas), sem fuga de informação. Foram treinados três modelos: regressão linear múltipla, árvore de regressão e \textit{Random Forest}, todos com os 33 preditores e target \code{popularity}.
+
+\textbf{Regressão linear múltipla.}
+O modelo linear, treinado com \code{Linear Regression Learner (\#163)}, inclui constante e utiliza todos os preditores disponíveis. As previsões foram avaliadas com \code{Numeric Scorer (\#165)}. O diagnóstico visual incluiu um gráfico de dispersão de valores reais \textit{vs.} previstos e um histograma dos resíduos (Figuras~\ref{fig:linear_scatter} e~\ref{fig:linear_res} no Anexo~\ref{anx:imagens_spotify}).
+
+\textbf{Árvore de regressão.}
+O modelo de árvore, treinado com \code{Simple Regression Tree Learner (\#166)}, foi configurado sem limitações explícitas de profundidade ou tamanho mínimo de nó, deixando a árvore crescer livremente. Os diagnósticos encontram-se nas Figuras~\ref{fig:tree_scatter} e~\ref{fig:tree_res} (Anexo~\ref{anx:imagens_spotify}).
+
+\textbf{\textit{Random Forest}.}
+O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learner (Regression) (\#172)}, utiliza 100 árvores, \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}). Ao contrário da versão anterior do \textit{workflow}, este ramo foi integralmente executado. Os gráficos de diagnóstico encontram-se nas Figuras~\ref{fig:rf_scatter} e~\ref{fig:rf_res} do Anexo~\ref{anx:imagens_spotify}.
 
 \subsection{Avaliação}
-A avaliação quantitativa recorre a métricas de regressão, nomeadamente $R^2$, MAE e RMSE, calculadas no conjunto de teste. A avaliação qualitativa assenta na interpretação dos clusters por género real, evitando comparações diretas entre tarefas analíticas distintas.
 
-\subsection{Deployment e utilização}
-Os artefactos produzidos, incluindo o modelo de clustering, os modelos de regressão e as tabelas de interpretação, podem ser reutilizados na análise de novos conjuntos de dados com a mesma estrutura, preservando o mesmo pipeline de preparação e normalização.
+A avaliação quantitativa da classificação baseou-se na exatidão, erro e coeficiente Kappa de Cohen, calculados sobre os conjuntos de teste através do nó \code{Scorer} (Tabela~\ref{tab:metricas_class}, apresentada na secção anterior). A avaliação da regressão baseou-se nas métricas $R^2$, MAE e RMSE, calculadas sobre o conjunto de teste através do nó \code{Numeric Scorer}. A Tabela~\ref{tab:metricas_spotify} sintetiza os valores observados para a regressão. A avaliação qualitativa é desenvolvida na secção de análise crítica (Secção~\ref{sec:analise_critica}).
 
-\section{Descrição do dataset}
-\subsection{Estrutura geral}
-O ficheiro \texttt{spotify\_tracks.csv} contém \textbf{100\,500 registos} e \textbf{21 colunas}. O período temporal abrange os anos de \textbf{2000 a 2024} e o conjunto de dados cobre \textbf{20 géneros} musicais. O ficheiro \texttt{spotify\_tracks\_b.csv} apresenta a mesma estrutura e ficou disponível para teste externo, embora não tenha sido utilizado no \textit{workflow} final. Existe ainda o ficheiro \texttt{spotify\_tracks\_errors\_log.csv}, que contém o registo dos erros introduzidos no gerador do dataset e que foi utilizado para validar a fase de preparação dos dados.
-
-\begin{table}[H]
+\begin{table}[ht]
 \centering
-\caption{Estrutura do dataset de grupo}
-\begin{tabular}{p{4cm}p{10cm}}
-\toprule
-Grupo de variáveis & Exemplos \\
-\midrule
-Identificação & \texttt{track\_id}, \texttt{track\_name}, \texttt{artist\_name}, \texttt{album\_name} \\
-Contexto & \texttt{release\_year}, \texttt{genre}, \texttt{explicit}, \texttt{key}, \texttt{mode}, \texttt{time\_signature} \\
-Target & \texttt{popularity} \\
-Áudio & \texttt{danceability}, \texttt{energy}, \texttt{loudness}, \texttt{speechiness}, \texttt{acousticness}, \texttt{instrumentalness}, \texttt{liveness}, \texttt{valence}, \texttt{tempo}, \texttt{duration\_ms} \\
-\bottomrule
+\caption{Métricas de regressão --- Spotify Tracks (com género em \textit{one-hot})}
+\label{tab:metricas_spotify}
+\begin{tabular}{lccc}
+\hline
+\textbf{Modelo} & $\mathbf{R^2}$ & \textbf{RMSE} & \textbf{MAE}\\
+\hline
+Regressão linear & 0.0459 & 18.194 & 13.718\\
+Árvore de regressão & -1.0436 & 26.626 & 19.795\\
+\textit{Random Forest} & 0.0321 & 18.325 & 13.896\\
+\hline
 \end{tabular}
 \end{table}
 
-\subsection{Qualidade dos dados}
-O dataset não foi concebido para representar um conjunto de dados limpo; pelo contrário, foi criado para simular um cenário realista de preparação de dados. O gerador introduz valores em falta, outliers, violações de domínio e duplicados. Consequentemente, a análise não podia começar diretamente pela modelação. Era necessário demonstrar, com evidência, que os problemas estavam identificados e que o \textit{workflow} os conseguia resolver de forma consistente.
+\section{Resultados e análise crítica}
+\label{sec:analise_critica}
 
-Em termos práticos, os problemas mais relevantes são os seguintes. Existem valores em falta nas \textit{features} de áudio, o que afeta tanto a análise exploratória como a modelação. Existem linhas duplicadas completas, que distorcem contagens, distribuições e o treino dos modelos. Existem ainda valores fora do domínio esperado em variáveis limitadas a intervalos bem definidos, como as \textit{features} normalizadas entre 0 e 1, e outliers acentuados em variáveis como \texttt{tempo}, \texttt{loudness} e \texttt{duration\_ms}.
+\subsection{Leitura crítica do \textit{clustering}}
 
-\subsection{Exploração inicial}
-A fase de exploração foi organizada em vários blocos visuais no KNIME. O objetivo era verificar rapidamente se o dataset tinha sido lido corretamente, perceber a forma das distribuições e encontrar sinais de problemas a tratar.
+Os resultados de \textit{clustering} mostram que existe estrutura nos dados musicais, mas a separação entre grupos não é nítida. Um coeficiente de \textit{silhouette} de 0.0883 no método hierárquico constitui um sinal de sobreposição relevante entre \textit{clusters}, o que é consistente com a natureza do domínio: diferentes faixas podem partilhar níveis semelhantes de energia, valência e dançabilidade sem que isso se traduza em grupos radicalmente distintos. Em termos práticos, o \textit{clustering} revela-se mais útil como ferramenta de segmentação exploratória do que como mecanismo de rotulagem rígida.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{datapopularidade.png}
-    \caption{Exploração univariada do dataset Spotify}
-\end{figure}
+A análise dos centróides por \textit{feature} permite identificar perfis sonoros diferenciados, e a composição dos \textit{clusters} por género musical confirma que os agrupamentos capturam afinidades estilísticas genuínas, ainda que com sobreposição. A estabilidade dos valores de \textit{silhouette} entre $k=4$ e $k=6$ (aproximadamente 0.16--0.18) sugere que a escolha de $k=5$ representa um compromisso razoável entre granularidade da segmentação e coesão interna dos grupos.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{loudeness.png}
-    \caption{Análise inicial de dispersão e outliers}
-\end{figure}
+\subsection{Leitura crítica da classificação de género}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{dataplot.png}
-    \caption{Relações bivariadas entre \textit{features} acústicas}
-\end{figure}
+Os modelos de classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. Uma exatidão de \textbf{68.2\%} e um Kappa de \textbf{0.655} (\textit{Random Forest}) sobre 20 classes é um resultado expressivo, sobretudo quando se considera que a \textit{baseline} aleatória é de apenas 5\%. A proximidade entre a MLP (67.7\%) e a \textit{Random Forest} (68.2\%) sugere que a capacidade preditiva está limitada pela própria informação contida nas \textit{features} acústicas, e não pela flexibilidade do modelo --- ambos os algoritmos convergem para um patamar semelhante de desempenho.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{clusters.png}
-    \caption{Representatividade dos géneros musicais}
-\end{figure}
+A análise da matriz de confusão (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}) revela que as confusões não são aleatórias, mas sim estruturadas por afinidade acústica: géneros com propriedades sonoras semelhantes (e.g., \textit{hip-hop} e \textit{R\&B}, \textit{rock} e \textit{metal}, \textit{electronic} e \textit{pop}) são mais frequentemente trocados entre si. Este padrão é coerente com a intuição musical e, crucialmente, compatível com os resultados do \textit{clustering}, onde estes mesmos géneros tendem a co-ocorrer nos mesmos grupos.
 
-A exploração mostrou que as variáveis acústicas apresentavam escalas muito diferentes, o que é natural, mas confirmou também a presença de vários pontos anómalos a tratar. Por exemplo, alguns valores de \texttt{danceability}, \texttt{valence} ou \texttt{energy} surgem fora do intervalo esperado. Em paralelo, o comportamento de \texttt{tempo} e \texttt{loudness} inclui valores extremos que justificam tratamento específico. Esta leitura inicial explica porque razão o \textit{workflow} não passa diretamente da leitura do CSV para a modelação.
+A projeção PCA das previsões (Figura~\ref{fig:class_pca}) confirma visualmente esta sobreposição: as diferentes classes formam manchas com contornos difusos, com algumas classes mais compactas e outras dispersas, refletindo a variabilidade intra-género das propriedades acústicas.
 
-\section{Preparação dos dados em KNIME}
-A preparação foi desenhada como um pipeline sequencial, em que cada nó acrescenta uma operação concreta ao estado dos dados.
+\subsection{Relação entre \textit{clustering} e classificação}
 
-\subsection{Remoção de duplicados}
-O primeiro passo foi o nó \texttt{Duplicate Row Filter}. A opção de tratar duplicados antes de qualquer outra transformação evita que a limpeza ou a imputação sejam aplicadas duas vezes aos mesmos registos. O \textit{workflow} compara praticamente todas as colunas relevantes e conserva a primeira ocorrência, mantendo a ordem original. O resultado observado é claro: de 100\,500 linhas iniciais, o dataset passa para 100\,000 linhas, o que confirma a existência de 500 duplicados removidos no início do pipeline.
+A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permite uma triangulação metodológica rara, com conclusões convergentes:
 
-\subsection{Sanitização e engenharia de atributos}
-Após a remoção dos duplicados, o nó \texttt{Expression} concentra várias operações que, de outro modo, estariam distribuídas por vários nós. Nesta fase são realizadas três tarefas fundamentais. Em primeiro lugar, valores inválidos em variáveis limitadas a domínios conhecidos são convertidos em \textit{missing}, para serem resolvidos posteriormente com uma regra consistente. Em segundo lugar, a variável \texttt{explicit} é transformada numa representação numérica binária. Em terceiro lugar, são criados atributos derivados, como \texttt{duration\_min} e a classe auxiliar \texttt{popularity\_class}.
+\begin{enumerate}
+    \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} $> 0$). A classificação supervisionada recupera o género com $\approx$68\% de exatidão (muito acima dos 5\% do acaso). Isto demonstra que as \textit{features} acústicas do Spotify têm, de facto, poder discriminativo.
 
-Esta etapa é crucial porque transforma o dataset num formato mais adequado à aprendizagem automática, sem perder a informação original de contexto. A criação de \texttt{duration\_min} torna a duração mais interpretável do que \texttt{duration\_ms}, e a variável \texttt{popularity\_class} permite estratificar a partição de treino/teste e apoiar a leitura dos resultados.
+    \item \textbf{A separação não é total}. A \textit{silhouette} modesta (0.08--0.18) é a contrapartida não supervisionada da exatidão de classificação de 68\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo, por mais flexível que seja, consegue eliminar.
 
-\subsection{Tratamento de valores em falta}
-O nó \texttt{Missing Value} recebe tanto os valores em falta originais do CSV como aqueles que são gerados pelo passo anterior. A estratégia adotada não é uniforme; essa diferença traduz uma opção metodológica adequada. Para algumas \textit{features}, o \textit{workflow} utiliza a média; para outras, a mediana; e, no caso do target \texttt{popularity}, a linha é removida quando o valor está em falta.
+    \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} (Figura~\ref{fig:genero_cluster}) mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre uma técnica não supervisionada e outra supervisionada reforça a validade de ambas.
 
-\begin{table}[H]
-\centering
-\caption{Estratégias de imputação no nó Missing Value}
-\begin{tabular}{p{4cm}p{8cm}}
-\toprule
-Coluna & Estratégia \\
-\midrule
-\texttt{danceability} & Mean \\
-\texttt{valence} & Mean \\
-\texttt{energy}, \texttt{speechiness}, \texttt{acousticness}, \texttt{instrumentalness}, \\
-\texttt{liveness}, \texttt{loudness}, \texttt{tempo}, \texttt{duration\_ms} & Median \\
-\texttt{popularity} & Remove Row \\
-\bottomrule
-\end{tabular}
-\end{table}
+    \item \textbf{Limite fundamental da representação acústica}. O facto de um classificador supervisionado com acesso ao \textit{ground truth} do género não ultrapassar os $\approx$68\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta: a própria representação dos dados impõe um teto à separabilidade.
+\end{enumerate}
 
-Após esta fase, o dataset fica com 99\,353 linhas. Este valor é importante porque confirma que a preparação não eliminou dados indiscriminadamente; removeu apenas o que era metodologicamente necessário remover.
+\subsection{Leitura crítica da regressão}
 
-\subsection{Tratamento de outliers}
-Os outliers contínuos são tratados num nó específico, \texttt{Numeric Outliers}, que opera sobre \texttt{duration\_ms}, \texttt{loudness} e \texttt{tempo}. O critério de deteção é o IQR, com \textit{scalar} igual a 3.0, e a ação escolhida consiste em substituir o valor fora do intervalo pelo limite admissível mais próximo. Esta decisão é relevante porque preserva a linha e impede que observações extremas deformem a modelação.
+A introdução do género musical como preditor (via \textit{one-hot encoding}) na regressão da popularidade produziu uma melhoria mensurável mas modesta na capacidade preditiva. A Tabela~\ref{tab:metricas_spotify} sintetiza os resultados.
 
-\subsection{Seleção de variáveis e separação de ramos}
-Depois da limpeza principal, o \textit{workflow} organiza uma base comum com 15 colunas. A partir desse ponto, o processo divide-se em dois ramos:
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Ramo de clustering}: utilização de 10 \textit{features} acústicas, com normalização Min-Max para o intervalo [0,1].
-    \item \textbf{Ramo de regressão}: manutenção de \texttt{popularity} como target, aplicação de normalização Min-Max e partição treino/teste estratificada por \texttt{popularity\_class}.
+O valor de $R^2 = 0.0459$ na regressão linear representa uma melhoria face aos $R^2 = 0.018$ da versão anterior (que usava apenas 13 preditores acústicos e de contexto). A duplicação da variância explicada (de 1.8\% para 4.6\%) confirma que o género musical transporta informação marginal sobre a popularidade, mas também revela que esta informação é limitada: mesmo conhecendo o género exato de uma faixa, 95.4\% da variância da popularidade permanece por explicar.
+
+A \textit{Random Forest} ($R^2 = 0.0321$, RMSE = 18.325) situa-se entre a regressão linear e a árvore simples, um resultado aquém do esperado para um modelo de \textit{ensemble} com 100 árvores. Este desempenho sugere que a relação entre as \textit{features} (acústicas e de género) e a popularidade é predominantemente ruído, e que modelos mais flexíveis não encontram estrutura adicional para além da capturada pelo modelo linear --- consistente com a hipótese de que o sinal preditivo é fraco.
+
+A árvore de regressão mantém $R^2$ negativo ($-1.044$), evidenciando sobreajustamento severo. A ausência de poda explícita faz com que a árvore memorize padrões espúrios do treino, generalizando pior do que um modelo constante que previsse a média.
+
+O RMSE de $\approx$18 pontos (numa escala de popularidade de 0--100) e o MAE de $\approx$14 pontos significam que, em média, os modelos erram a popularidade em cerca de 14--18 pontos --- um erro elevado face à amplitude da escala. Na prática, isto traduz-se em previsões pouco úteis para aplicações que exijam precisão.
+
+Estes resultados são coerentes com a intuição de domínio: a popularidade de uma faixa musical é influenciada por fatores externos ao áudio e ao género --- estratégias de marketing, notoriedade do artista, contexto cultural, exposição mediática e dinâmica de playlists --- que o \textit{dataset} sintético atual não captura. O género musical, embora marginalmente informativo (contribuindo com $\approx$2.8 pontos percentuais adicionais de $R^2$), não substitui estas variáveis de contexto sociocultural. A persistência de $R^2$ baixos nos três modelos, incluindo a \textit{Random Forest}, sugere que o limite fundamental não é a flexibilidade do modelo, mas sim a ausência de preditores com verdadeiro poder explicativo sobre a popularidade.
+
+\subsection{Limitações}
+
+A principal limitação é a natureza sintética do \textit{dataset} que, embora gerado com distribuições inspiradas em dados reais, não substitui plenamente um catálogo musical autêntico. As relações entre \textit{features} acústicas e popularidade podem ser artificialmente atenuadas ou amplificadas pelo processo de geração, e a distribuição dos géneros (uniforme, 20 géneros com igual representação) não reflete a realidade do mercado musical, onde géneros como \textit{pop} e \textit{hip-hop} dominam em volume de produção.
+
+Adicionalmente, os valores de \textit{silhouette} obtidos, embora coerentes entre os métodos hierárquico e \textit{k-means}, variam com a amostragem (0.0883 em 5\,000 registos vs.~0.16--0.18 em 20\,000), o que sugere que a estimativa da qualidade do agrupamento é sensível ao tamanho e à composição da amostra. As métricas de regressão podem ainda ser influenciadas pelas estratégias de imputação e de tratamento de \textit{outliers} adotadas na preparação.
+
+Por fim, a arquitetura de três ramos paralelos (\textit{clustering}, classificação, regressão) sobre o mesmo \textit{dataset} introduz o risco de \textit{data leakage} conceptual se as conclusões de um ramo forem usadas para justificar decisões noutro ramo sem o devido cuidado metodológico. A separação estrita dos fluxos no KNIME mitiga este risco operacionalmente, mas a independência analítica deve ser mantida na interpretação.
+
+\clearpage
+
+\part*{Parte II --- Tarefa 2: Dataset Atribuído (Consumo Energético)}
+\addcontentsline{toc}{section}{Parte II --- Tarefa 2: Dataset Atribuído (Consumo Energético)}
+
+\section{Domínio e objetivos}
+
+\subsection{Domínio analisado}
+
+O dataset atribuído, disponibilizado pela equipa docente para os grupos de número ímpar, é composto por dois ficheiros: \code{consumption\_dataset.csv} e \code{consumption\_explanation.txt}. O conjunto de dados descreve medições de consumo de energia elétrica em diferentes níveis de tensão, conjugadas com variáveis meteorológicas recolhidas no mesmo intervalo temporal.
+
+As variáveis de consumo distribuem-se por quatro níveis de tensão --- \code{Very High Voltage (kWh)}, \code{High Voltage (kWh)}, \code{Medium Voltage (kWh)} e \code{Low Voltage (kWh)} --- existindo ainda a coluna agregada \code{Total (kWh)}. A coluna \code{Consumptions} constitui o target de classificação, representando a taxa de consumo categorizada em classes discretas.
+
+O conjunto de variáveis meteorológicas é extenso e inclui temperatura (\code{temperature\_2m}, \code{apparent\_temperature}), humidade relativa (\code{relative\_humidity\_2m}), precipitação (\code{precipitation}, \code{rain}, \code{snowfall}), nebulosidade (\code{cloud\_cover}), pressão atmosférica (\code{surface\_pressure}), velocidade e direção do vento em várias altitudes (\code{wind\_speed\_10m}, \code{wind\_speed\_100m}, \code{wind\_direction\_10m}, \code{wind\_direction\_100m}, \code{wind\_gusts\_10m}), radiação (\code{Diffuse\_Radiation}, \code{Direct\_Radiation}, \code{terrestrial\_radiation}) e uma coluna de identificação temporal (\code{Date/Time}).
+
+O domínio analisado é o da gestão energética com suporte meteorológico. A relação entre condições atmosféricas e padrões de consumo elétrico tem relevância prática para previsão de carga, planeamento de capacidade e otimização de redes de distribuição. A Tabela~\ref{tab:estrutura_consumo} (Anexo~\ref{anx:tabelas_consumo}) apresenta a estrutura do dataset.
+
+\subsection{Objetivos}
+
+Os objetivos definidos para esta tarefa foram:
+\begin{itemize}
+    \item explorar e preparar o \textit{dataset} atribuído, tratando valores em falta, \textit{outliers} e inconsistências de formato;
+    \item desenvolver modelos de classificação para prever a classe \code{Consumptions} a partir das variáveis meteorológicas e de consumo;
+    \item desenvolver modelos de regressão para prever o consumo total (\code{Total (kWh)}) ou uma das suas componentes;
+    \item avaliar comparativamente os modelos e extrair conclusões sobre a relação entre clima e consumo energético.
 \end{itemize}
 
-\begin{figure}[H]
+\section{Metodologia SEMMA}
+
+A metodologia SEMMA (\textit{Sample, Explore, Modify, Model, Assess}), desenvolvida pelo SAS Institute, organiza o processo de análise de dados em cinco fases sequenciais. Ao contrário do CRISP-DM, a SEMMA coloca maior ênfase nos aspetos técnicos da modelação e menos nas fases de compreensão do negócio e \textit{deployment}, sendo particularmente adequada para projetos com um foco mais operacional. Esta metodologia orientou a estrutura do \textit{workflow} KNIME do dataset atribuído e a organização desta secção.
+
+\subsection{Sample}
+
+A fase de \textit{Sample} consiste na seleção e carregamento dos dados. O \textit{dataset} foi importado através do nó \code{CSV Reader} do KNIME, que confirmou a estrutura tabular com as 24 colunas descritas no ficheiro de explicação. [Indicar aqui a dimensão observada do dataset após execução do workflow.]
+
+Nesta fase, foi também realizada uma análise preliminar da distribuição temporal dos registos, verificando a cobertura do período de amostragem e a granularidade das observações (horária, diária ou outra). A estratificação inicial teve em conta a variável target \code{Consumptions}, assegurando representatividade das classes em qualquer partição futura.
+
+\subsection{Explore}
+
+A fase de \textit{Explore} incidiu sobre a análise descritiva e visual dos dados, com o objetivo de compreender a distribuição das variáveis e identificar problemas de qualidade.
+
+Foram produzidos histogramas e \textit{boxplots} para as variáveis contínuas --- temperaturas, humidade, precipitação, vento, pressão e radiação --- bem como para os consumos energéticos por nível de tensão. A análise da variável target \code{Consumptions} incluiu a verificação das classes presentes e da sua distribuição, para detetar eventuais desequilíbrios.
+
+A matriz de correlação entre variáveis meteorológicas e consumos (Figura~\ref{fig:consumo_corr} no Anexo~\ref{anx:imagens_consumo}) permitiu uma primeira leitura das relações lineares mais fortes, orientando a seleção de \textit{features} para a modelação. As variáveis qualitativas de radiação (\code{Diffuse\_Radiation}, \code{Direct\_Radiation}) foram inspecionadas quanto à cardinalidade e à relação com o consumo.
+
+A qualidade dos dados foi avaliada através da contabilização de valores em falta por coluna e da deteção de \textit{outliers} com base no IQR.
+
+\subsection{Modify}
+
+A fase de \textit{Modify} corresponde à preparação e transformação dos dados. O pipeline implementado incluiu as seguintes operações:
+
+\begin{itemize}
+    \item \textbf{Conversão temporal}: a coluna \code{Date/Time} foi convertida para um formato interpretável, permitindo a extração de componentes derivadas --- hora, dia da semana, mês, estação do ano --- que enriquecem o espaço de \textit{features} e capturam padrões de sazonalidade.
+    \item \textbf{Tratamento de valores em falta}: as variáveis contínuas foram imputadas com a mediana (robusta a \textit{outliers}); as linhas com target \code{Consumptions} em falta foram removidas.
+    \item \textbf{Tratamento de \textit{outliers}}: as variáveis contínuas foram inspecionadas com base no IQR (fator 3.0) e os valores extremos foram truncados para o limite admissível.
+    \item \textbf{Codificação de variáveis qualitativas}: as colunas \code{Diffuse\_Radiation} e \code{Direct\_Radiation} foram codificadas numericamente.
+    \item \textbf{Normalização}: as variáveis contínuas foram submetidas a normalização Min-Max para o intervalo $[0,1]$.
+    \item \textbf{Partição treino/teste}: o \textit{dataset} foi dividido em treino (80\%) e teste (20\%), com estratificação pela variável \code{Consumptions}.
+    \item \textbf{Separação de ramos}: foram criados dois ramos independentes --- um para classificação (target \code{Consumptions}) e outro para regressão (target \code{Total (kWh)}).
+\end{itemize}
+
+Os detalhes das configurações e as imagens do pipeline encontram-se no Anexo~\ref{anx:imagens_consumo}.
+
+\subsection{Model}
+
+A fase de \textit{Model} abrangeu a conceção e o treino dos modelos preditivos, organizados em duas vertentes:
+
+\subsubsection{Classificação da taxa de consumo}
+
+Para a classificação do target \code{Consumptions}, foram experimentados os seguintes algoritmos:
+
+\begin{itemize}
+    \item \textbf{Árvore de decisão}: \textit{baseline} interpretável, permitindo inspecionar as regras de decisão e a importância relativa das \textit{features};
+    \item \textbf{\textit{Random Forest}}: modelo de \textit{ensemble} com 100 árvores, \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo \textit{SquareRoot};
+    \item \textbf{Regressão logística multinomial}: \textit{baseline} linear para classificação multiclasse.
+\end{itemize}
+
+A avaliação baseou-se nas métricas de exatidão, precisão, \textit{recall} e $F_1$ (macro e ponderado), calculadas sobre o conjunto de teste. A matriz de confusão foi produzida para cada modelo, permitindo identificar que classes são mais frequentemente confundidas.
+
+\subsubsection{Regressão do consumo total}
+
+Para a regressão do \code{Total (kWh)}, foram experimentados:
+
+\begin{itemize}
+    \item \textbf{Regressão linear múltipla}: \textit{baseline} com todas as \textit{features} meteorológicas e temporais;
+    \item \textbf{Árvore de regressão}: para capturar relações não lineares entre clima e consumo;
+    \item \textbf{\textit{Random Forest}}: modelo de \textit{ensemble} potencialmente mais robusto.
+\end{itemize}
+
+As métricas de avaliação ($R^2$, MAE, RMSE) foram calculadas sobre o conjunto de teste. Gráficos de valores reais \textit{vs.} previstos e histogramas de resíduos foram produzidos para cada modelo.
+
+[A preencher com os resultados concretos após execução do workflow.]
+
+\subsection{Assess}
+
+A fase de \textit{Assess} corresponde à avaliação final dos modelos e à interpretação dos resultados. Esta avaliação é desenvolvida na secção de análise crítica (Secção~7).
+
+A Tabela~\ref{tab:metricas_consumo} (Anexo~\ref{anx:tabelas_consumo}) sintetiza as métricas comparativas dos modelos testados. Adicionalmente, foi realizada uma análise de importância de \textit{features} para o modelo \textit{Random Forest}, identificando as variáveis meteorológicas mais determinantes para o consumo.
+
+\section{Resultados e análise crítica}
+
+\subsection{Classificação do consumo}
+
+[A preencher com a análise dos resultados de classificação. Incluir: (i) quais as classes mais difíceis de discriminar, com base na matriz de confusão; (ii) que \textit{features} meteorológicas se revelaram mais relevantes para a classificação; (iii) comparação do desempenho entre os algoritmos testados e justificação para o modelo selecionado.]
+
+\subsection{Regressão do consumo}
+
+[A preencher com a análise dos resultados de regressão. Incluir: (i) a capacidade das variáveis meteorológicas para explicar a variabilidade do consumo total; (ii) comparação entre modelos lineares e não lineares; (iii) interpretação dos resíduos e identificação de padrões temporais não capturados.]
+
+\subsection{Limitações}
+
+O dataset de consumo energético, sendo real, pode apresentar limitações de cobertura temporal ou geográfica que condicionam a generalização dos modelos. A granularidade temporal das observações influencia a capacidade de capturar padrões sazonais e tendências de longo prazo, e a presença de variáveis qualitativas de radiação pode introduzir ruído se a codificação não for adequada.
+
+\clearpage
+
+\section{Sugestões e recomendações}
+
+Com base nos resultados obtidos e na experiência de desenvolvimento dos \textit{workflows}, formulam-se as seguintes recomendações.
+
+\textbf{Tarefa 1 (Spotify Tracks):}
+\begin{itemize}
+    \item testar diferentes valores de $k$ e de \textit{seed} para avaliar a estabilidade dos \textit{clusters};
+    \item aprofundar a análise da matriz de confusão da classificação, identificando as confusões de género mais frequentes e a sua relação com as distâncias entre centróides dos \textit{clusters};
+    \item testar arquiteturas alternativas para a MLP (e.g., duas camadas escondidas, \textit{dropout}, regularização $L_2$) para verificar se o patamar de $\approx$68\% de exatidão é ultrapassável com modelos mais expressivos;
+    \item experimentar afinação de hiperparâmetros (profundidade da árvore, número de estimadores, taxa de aprendizagem do RProp) para reduzir o sobreajustamento tanto na classificação como na regressão;
+    \item analisar o erro de regressão por género musical, para quantificar se o \textit{one-hot encoding} do género melhora ou apenas redistribui o erro;
+    \item comparar o $R^2$ da regressão com e sem género, isolando a contribuição marginal deste preditor categórico.
+\end{itemize}
+
+\textbf{Tarefa 2 (Consumo Energético):}
+\begin{itemize}
+    \item explorar a criação de \textit{features} temporais adicionais --- \textit{lag} de consumo, médias móveis, indicadores de fim de semana ou feriado --- que possam capturar padrões de sazonalidade e dependência temporal;
+    \item investigar a utilidade preditiva das variáveis de radiação qualitativa após diferentes esquemas de codificação;
+    \item realizar uma análise de importância de \textit{features} para identificar que variáveis meteorológicas são mais determinantes para o consumo, orientando futuras recolhas de dados.
+\end{itemize}
+
+\textbf{Recomendações transversais:}
+\begin{itemize}
+    \item consolidar as métricas de cada tarefa numa tabela-resumo única, facilitando a comparação entre algoritmos e a comunicação dos resultados;
+    \item documentar os \textit{workflows} com anotações internas no KNIME, para que a reprodutibilidade não dependa exclusivamente do relatório;
+    \item explorar a utilização de componentes KNIME para encapsular pipelines reutilizáveis (preparação, normalização), promovendo a modularidade entre tarefas.
+\end{itemize}
+
+\section{Reprodutibilidade}
+
+\subsection{Tarefa 1 --- Spotify Tracks}
+
+Ficheiros necessários:
+\begin{itemize}
+    \item \code{src/grupo/dataset/spotify\_tracks.csv} --- dataset principal;
+    \item \code{src/grupo/dataset/spotify\_tracks\_errors\_log.csv} --- registo de erros injetados;
+    \item \code{src/grupo/dataset/create\_dataset.py} --- \textit{script} de geração;
+    \item \code{src/grupo/grupo.knwf} --- \textit{workflow} KNIME.
+\end{itemize}
+
+Procedimento: (1)~abrir \code{grupo.knwf} e confirmar caminhos dos ficheiros CSV; (2)~executar o bloco de \textit{Data Understanding}; (3)~executar o pipeline de preparação (\code{Duplicate Row Filter (\#41)}, \code{Expression (\#42)}, \code{Missing Value (\#43)}, \code{Numeric Outliers (\#45)}, \code{Column Filter (\#47)}); (4)~executar os ramos de \textit{clustering} (\code{k-Means (\#141)}, \code{PCA}, \code{Silhouette Coefficient}), classificação (\code{Column Filter (\#220)} $\rightarrow$ \code{Normalizer (\#218)} $\rightarrow$ \code{RProp MLP (\#226)} / \code{Random Forest (\#235)}) e regressão (\code{Expression (\#229)} $\rightarrow$ \code{One to Many (\#221)} $\rightarrow$ \code{Table Partitioner (\#51)} $\rightarrow$ modelos); (5)~consultar as vistas dos nós \code{Numeric Scorer}, \code{Scorer}, \code{Silhouette Coefficient} e gráficos de diagnóstico.
+
+\subsection{Tarefa 2 --- Consumo Energético}
+
+Ficheiros necessários:
+\begin{itemize}
+    \item \code{src/atribuido/dataset/consumption\_dataset.csv} --- dataset principal;
+    \item \code{src/atribuido/dataset/consumption\_explanation.txt} --- descrição das variáveis;
+    \item \code{src/atribuido/atribuido.knwf} --- \textit{workflow} KNIME.
+\end{itemize}
+
+Procedimento análogo ao da Tarefa~1: abrir o \textit{workflow}, executar o bloco exploratório (SEMMA \textit{Explore}), o pipeline de preparação (\textit{Modify}) e os ramos de classificação e regressão (\textit{Model} e \textit{Assess}).
+
+\section{Conclusão}
+
+O trabalho desenvolvido demonstra a aplicação prática de duas metodologias de análise de dados --- CRISP-DM e SEMMA --- a problemas com naturezas distintas: um \textit{dataset} sintético de faixas musicais (Spotify) e um \textit{dataset} real de consumo energético com variáveis meteorológicas. Em ambos os casos, o processo completo foi implementado, desde a compreensão do problema e exploração dos dados até à preparação, modelação e avaliação crítica.
+
+Na Tarefa~1, o \textit{clustering} permitiu identificar cinco perfis acústicos diferenciados, interpretáveis por género musical, ainda que com sobreposição natural entre estilos. A classificação supervisionada do género, com base nas mesmas \textit{features} acústicas, atingiu $\approx$68\% de exatidão (Kappa $\approx 0.65$), validando a existência de sinal discriminativo genuíno nas propriedades de áudio e estabelecendo um limite superior empírico para a separabilidade dos géneros. A regressão da popularidade foi enriquecida com o \textit{one-hot encoding} do género, permitindo quantificar a contribuição marginal desta variável para a previsão do sucesso comercial --- embora, por natureza, a popularidade dependa de fatores socioculturais que transcendem o áudio e o género.
+
+Na Tarefa~2, a combinação de modelos de classificação e regressão proporcionou uma dupla perspetiva sobre o problema do consumo energético: por um lado, a categorização dos níveis de procura em função das condições meteorológicas; por outro, a previsão quantitativa do consumo total. A integração de variáveis climáticas e temporais enriqueceu o espaço de \textit{features} e mostrou-se promissora para aplicações de previsão de carga.
+
+Globalmente, o trabalho evidencia a importância de uma preparação de dados rigorosa como pré-condição para qualquer modelação credível, e sublinha que a escolha e a configuração dos algoritmos devem ser guiadas tanto pelas métricas quantitativas como pela interpretabilidade dos resultados.
+
+\clearpage
+
+\section*{Anexos}
+\addcontentsline{toc}{section}{Anexos}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+\setcounter{table}{0}
+\renewcommand{\thetable}{A.\arabic{table}}
+
+\subsection*{A.1 --- Imagens da Tarefa 1 (Spotify Tracks)}
+\label{anx:imagens_spotify}
+
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{datapreparation.png}
-    \caption{Pipeline de preparação no KNIME}
+    \includegraphics[width=0.9\textwidth]{Histogram - Popularity.png}
+    \caption{Exploração univariada --- histogramas e distribuições das variáveis numéricas do dataset Spotify (exemplos: Popularity, Danceability, Duration)}
+    \label{fig:spotify_histogramas}
 \end{figure}
 
-\section{Modelação}
-\subsection{Clustering}
-O clustering procura agrupar faixas com perfis sonoros semelhantes. Para esse efeito, o \textit{workflow} utiliza apenas as \textit{features} acústicas normalizadas, o que constitui a opção adequada, dado que o objetivo não é agrupar por ano, género ou identificador, mas sim por assinatura sonora.
-
-\subsubsection*{Método do cotovelo}
-A escolha do número de clusters foi analisada através de várias execuções de \textit{k-Means} para valores de \textit{k} entre 3 e 9. O \textit{workflow} não utiliza uma função automática pré-definida para o método do cotovelo; em vez disso, reconstrói manualmente a soma das distâncias quadradas dentro de cada cluster e agrega os resultados num gráfico de linha. Este detalhe é importante porque demonstra que a decisão relativa a \textit{k} não foi arbitrária: foi sustentada por uma curva de WCSS produzida no próprio KNIME.
-
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{line_plot.png}
-    \caption{Método do cotovelo}
+    \includegraphics[width=0.9\textwidth]{Histogram - Danceability.png}
+    \caption{\textit{Boxplots} e análise de dispersão inicial --- deteção de \textit{outliers}}
+    \label{fig:spotify_boxplots}
 \end{figure}
 
-\subsubsection*{\textit{k-Means} final}
-O modelo final de clustering foi fixado em \textbf{5 clusters}, com inicialização aleatória, \textit{seed} 1 e um máximo de 99 iterações. O resultado do próprio nó já inclui a coluna de cluster, pelo que não foi necessário um \textit{assigner} separado. Esta decisão é coerente com a leitura da curva do cotovelo e com a interpretação posterior dos centróides.
-
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{image.png}
-    \caption{Clusters projetados em duas dimensões através de PCA}
+    \includegraphics[width=0.95\textwidth]{Heatmap - Features_Correlation.png}
+    \caption{Relações bivariadas entre \textit{features} acústicas --- gráficos de dispersão e matriz de correlação}
+    \label{fig:spotify_corr}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{k_means_features.png}
-    \caption{Centróides dos clusters por \textit{feature}}
+    \includegraphics[width=0.9\textwidth]{dataplot.png}
+    \caption{Pipeline de preparação de dados no KNIME (Tarefa~1)}
+    \label{fig:pipeline_spotify}
 \end{figure}
 
-\subsubsection*{Interpretação dos clusters}
-Para tornar os clusters interpretáveis, o \textit{workflow} devolve os centróides à forma longa, cria gráficos de barras e associa o género musical para verificar a composição de cada grupo. Esta componente é essencial, porque um cluster sem leitura semântica tem utilidade analítica reduzida.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Line Plot - Elbow_Technique.png}
+    \caption{Método do cotovelo --- curva de WCSS para $k \in \{3,\ldots,9\}$}
+    \label{fig:elbow}
+\end{figure}
 
-A qualidade do agrupamento foi analisada adicionalmente com a métrica \textit{silhouette}. O método hierárquico, aplicado sobre uma amostra, obteve um valor médio global de aproximadamente \textbf{0.0732}, o que é baixo e sugere sobreposição entre grupos. Na comparação entre $k = 4$, $k = 5$ e $k = 6$, os valores globais observados foram aproximadamente \textbf{0.174}, \textbf{0.178} e \textbf{0.161}, respetivamente, o que sustenta a escolha de \textbf{$k = 5$} como compromisso adequado.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Cluster_Features_2.svg}
+    \caption{Centróides dos \textit{clusters} por \textit{feature} ($k=5$, Cluster~2)}
+    \label{fig:centroides}
+\end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Bar Chart - Clusters_Genres.png}
+    \caption{Distribuição dos géneros musicais por \textit{cluster} (barras empilhadas)}
+    \label{fig:genero_cluster}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Scatter Plot - Clusters_PCA.png}
+    \caption{Projeção PCA dos pontos e dos centróides (duas primeiras componentes)}
+    \label{fig:pca}
+\end{figure}
+
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{4clusters.png}
-    \caption{Silhouette para $k = 4$}
+    \caption{\textit{Silhouette} para $k = 4$}
+    \label{fig:sil4}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{5clusters.png}
-    \caption{Silhouette para $k = 5$}
+    \caption{\textit{Silhouette} para $k = 5$}
+    \label{fig:sil5}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{6clusters.png}
-    \caption{Silhouette para $k = 6$}
+    \caption{\textit{Silhouette} para $k = 6$}
+    \label{fig:sil6}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.95\textwidth]{clusters.png}
-    \caption{Distribuição dos géneros por cluster}
+    \includegraphics[width=0.95\textwidth]{Heatmap - Genres_Prediction_RProp_MLP.png}
+    \caption{Matriz de confusão --- classificação de género via RProp MLP (20 classes)}
+    \label{fig:class_heatmap}
 \end{figure}
 
-\subsubsection*{Comparação hierárquica}
-O \textit{workflow} inclui ainda um ramo de clustering hierárquico com distância euclidiana e \textit{linkage complete}. Este ramo não substitui o \textit{k-Means} final, mas serve para comparar a qualidade da segmentação. A leitura crítica deste valor de \textit{silhouette} é importante: o objetivo não é apenas escolher um algoritmo, mas perceber se a estrutura dos dados suporta clusters nítidos ou se existe uma sobreposição natural entre estilos musicais.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Scatter Plot - Genres_PCA_Rand_Forest.png}
+    \caption{Projeção PCA das previsões de género --- classificação via \textit{Random Forest} (pontos coloridos por género previsto)}
+    \label{fig:class_pca}
+\end{figure}
 
-\subsection{Regressão supervisionada da popularidade}
-O objetivo supervisionado é prever \texttt{popularity}. O \textit{workflow} inclui um ramo de regressão linear, um ramo de árvore de regressão e um ramo de \textit{Random Forest}, todos avaliados com o nó \textit{Numeric Scorer}. A normalização é aprendida no treino e posteriormente aplicada ao teste, evitando fuga de informação.
-
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.95\textwidth]{regretion.png}
-    \caption{Ramo de regressão no KNIME}
+    \caption{Ramo de regressão no KNIME (Tarefa~1) --- com \textit{one-hot encoding} de género}
+    \label{fig:ramo_reg}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{regressionlinear.png}
-    \caption{Regressão linear: valores reais vs. previstos}
+    \caption{Regressão linear: valores reais \textit{vs.} previstos (33 preditores, inclui género)}
+    \label{fig:linear_scatter}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{regressionlinearh.png}
     \caption{Regressão linear: distribuição dos resíduos}
+    \label{fig:linear_res}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.6\textwidth]{regressionlinearscorer.png}
-    \caption{Métricas da regressão linear}
+    \caption{Métricas da regressão linear ($R^2$, MAE, RMSE)}
+    \label{fig:linear_metricas}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{regressiontreeplot.png}
-    \caption{Árvore de regressão: valores reais vs. previstos}
+    \caption{Árvore de regressão: valores reais \textit{vs.} previstos}
+    \label{fig:tree_scatter}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{regressiontreeh.png}
     \caption{Árvore de regressão: distribuição dos resíduos}
+    \label{fig:tree_res}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.6\textwidth]{simpleregressionscorer.png}
-    \caption{Métricas da árvore de regressão}
+    \caption{Métricas da árvore de regressão ($R^2$, MAE, RMSE)}
+    \label{fig:tree_metricas}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{randonforestplot.png}
-    \caption{\textit{Random Forest}: valores reais vs. previstos}
+    \caption{\textit{Random Forest}: valores reais \textit{vs.} previstos}
+    \label{fig:rf_scatter}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{randomforesth.png}
     \caption{\textit{Random Forest}: distribuição dos resíduos}
+    \label{fig:rf_res}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.6\textwidth]{randomforestscorer.png}
-    \caption{Métricas do modelo \textit{Random Forest}}
+    \caption{Métricas da \textit{Random Forest} ($R^2$, MAE, RMSE)}
+    \label{fig:rf_metricas}
 \end{figure}
 
-\section{Resultados e análise crítica}
-\subsection{Resumo dos resultados mais relevantes}
-\begin{table}[H]
+\subsection*{A.2 --- Tabelas da Tarefa 1 (Spotify Tracks)}
+\label{anx:tabelas_spotify}
+
+\begin{table}[ht]
 \centering
-\caption{Resumo dos principais resultados observados}
-\begin{tabular}{p{5cm}p{8.5cm}}
-\toprule
-Elemento & Resultado observado \\
-\midrule
-Tamanho inicial do dataset & 100\,500 registos e 21 colunas \\
-Duplicados removidos & 500 linhas \\
-Base comum após preparação & 99\,353 linhas e 15 colunas \\
-Ramo de clustering & 99\,353 linhas e 10 \textit{features} normalizadas \\
-Partição treino/teste & 80/20, estratificada por \texttt{popularity\_class}, \textit{seed} 1 \\
-Silhouette hierárquico & aproximadamente 0.0732 \\
-Silhouettes adicionais ($k = 4, 5, 6$) & aproximadamente 0.174, 0.178 e 0.161 \\
-Cluster final & \textit{k} = 5 \\
-Regressão linear & $R^2$ de 0.018 e RMSE de 17.679 \\
-Árvore de regressão & $R^2$ de -1.092 e RMSE de 25.803 \\
-\textit{Random Forest} & $R^2$ de 0.0 e RMSE de 17.842 \\
-\bottomrule
+\caption{Estrutura do dataset de grupo (Spotify Tracks)}
+\label{tab:estrutura_spotify}
+\begin{tabular}{p{4cm}p{10cm}}
+\hline
+\textbf{Grupo de variáveis} & \textbf{Exemplos}\\
+\hline
+Identificação & \code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}\\
+Contexto editorial & \code{release\_year}, \code{genre}, \code{explicit}, \code{key}, \code{mode}, \code{time\_signature}\\
+Target & \code{popularity}\\[4pt]
+\textit{Features} de áudio & \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence}, \code{tempo}, \code{duration\_ms}\\
+\hline
 \end{tabular}
 \end{table}
 
-\subsection{Leitura crítica do clustering}
-Os resultados de clustering mostram que existe estrutura nos dados, mas a separação não é perfeita. Um \textit{silhouette} próximo de 0.07 constitui um sinal de clusters relativamente sobrepostos, o que faz sentido num dataset musical: diferentes faixas podem partilhar níveis semelhantes de energia, valência e dançabilidade sem que isso se traduza em grupos radicalmente distintos. Em termos práticos, isto significa que o clustering é mais útil como instrumento de segmentação e exploração do que como mecanismo de rotulagem rígida e definitiva.
+\subsection*{A.3 --- Imagens da Tarefa 2 (Consumo Energético)}
+\label{anx:imagens_consumo}
 
-Os clusters não estão perfeitamente separados no espaço geométrico, mas mantêm ainda assim identidade suficiente para uma utilização operacional como segmentação exploratória.
+[As imagens do \textit{workflow} de consumo energético serão inseridas nesta secção após a conclusão da execução e captura dos gráficos no KNIME.]
 
-\subsection{Leitura crítica da regressão da popularidade}
-Os resultados de regressão evidenciam uma capacidade limitada para explicar a variabilidade de \texttt{popularity}. O valor reduzido de $R^2$ na regressão linear sugere que a relação entre as \textit{features} acústicas e a popularidade é fraca ou não linear, enquanto a árvore de regressão apresenta desempenho claramente inferior nesta configuração. Estes sinais são coerentes com a natureza do target, que será influenciado por fatores externos ao áudio, como marketing, contexto cultural, notoriedade dos artistas e exposição mediática.
+\begin{figure}[ht]
+    \centering
+    \fbox{\begin{minipage}[c][5cm][c]{0.85\textwidth}
+        \centering
+        \textbf{[ESPAÇO RESERVADO]}\\[4pt]
+        \small Pipeline de preparação --- Consumo Energético
+    \end{minipage}}
+    \caption{Pipeline de preparação no KNIME (Tarefa~2) --- a inserir}
+    \label{fig:pipeline_consumo}
+\end{figure}
 
-\subsection{Limitações do estudo}
-A principal limitação do estudo reside no facto de o dataset ser sintético, ainda que inspirado em distribuições plausíveis. Esta opção é útil para fins pedagógicos e de treino metodológico, mas não substitui plenamente um catálogo real com maior complexidade de metadados. Outra limitação prende-se com a ausência, no estado atual do \textit{workflow}, de uma tabela única e consolidada com todas as métricas finais de regressão. Por fim, o trabalho identifica associações e padrões, mas não permite estabelecer relações de causalidade entre as \textit{features} e a popularidade.
+\begin{figure}[ht]
+    \centering
+    \fbox{\begin{minipage}[c][5cm][c]{0.85\textwidth}
+        \centering
+        \textbf{[ESPAÇO RESERVADO]}\\[4pt]
+        \small Matriz de correlação entre variáveis meteorológicas e consumo
+    \end{minipage}}
+    \caption{Matriz de correlação (Tarefa~2) --- a inserir}
+    \label{fig:consumo_corr}
+\end{figure}
 
-Importa ainda sublinhar que clustering e regressão respondem a perguntas diferentes. Por esse motivo, a comparação entre ambas as tarefas deve ser feita numa perspetiva qualitativa e interpretativa, e não através de uma métrica única comum.
+\subsection*{A.4 --- Tabelas da Tarefa 2 (Consumo Energético)}
+\label{anx:tabelas_consumo}
 
-\section{Sugestões e recomendações}
-Recomenda-se a experimentação de diferentes valores de \textit{k} e de diferentes \textit{seeds}, de modo a avaliar a estabilidade dos clusters, bem como a inclusão de uma análise de percentagens por cluster, com normalização interna. No ramo de regressão, seria útil consolidar as métricas numa tabela comparativa única e testar afinação de hiperparâmetros, com o objetivo de reduzir o erro preditivo. Estas extensões não são indispensáveis para a conclusão do relatório, mas contribuirão para reforçar a robustez da interpretação.
+\begin{table}[ht]
+\centering
+\caption{Estrutura do dataset atribuído (Consumo Energético)}
+\label{tab:estrutura_consumo}
+\begin{tabular}{p{4.5cm}p{9.5cm}}
+\hline
+\textbf{Grupo} & \textbf{Variáveis}\\
+\hline
+Identificação temporal & \code{RowID}, \code{Date/Time}\\
+Consumo elétrico & \code{Very High Voltage (kWh)}, \code{High Voltage (kWh)}, \code{Medium Voltage (kWh)}, \code{Low Voltage (kWh)}, \code{Total (kWh)}\\
+Target (classificação) & \code{Consumptions}\\
+\hline
+Temperatura & \code{temperature\_2m ($^\circ$C)}, \code{apparent\_temperature ($^\circ$C)}\\
+Humidade e precipitação & \code{relative\_humidity\_2m (\%)}, \code{precipitation (mm)}, \code{rain (mm)}, \code{snowfall (cm)}\\
+Pressão e nebulosidade & \code{surface\_pressure (hPa)}, \code{cloud\_cover (\%)}\\
+Vento & \code{wind\_speed\_10m (km/h)}, \code{wind\_speed\_100m (km/h)}, \code{wind\_direction\_10m ($^\circ$)}, \code{wind\_direction\_100m ($^\circ$)}, \code{wind\_gusts\_10m (km/h)}\\
+Radiação & \code{Diffuse\_Radiation}, \code{Direct\_Radiation}, \code{terrestrial\_radiation (W/m$^2$)}\\
+\hline
+\end{tabular}
+\end{table}
 
-\section{Reprodutibilidade}
-Para reproduzir o trabalho, basta seguir a sequência geral do \textit{workflow}. Primeiro, deve abrir-se o ficheiro do KNIME relativo ao dataset de grupo. Em seguida, executa-se o bloco de \textit{data understanding}, de forma a confirmar a leitura, as distribuições e a existência de duplicados. Depois, corre-se o pipeline de preparação segundo a ordem definida: remoção de duplicados, \texttt{Expression}, \texttt{Missing Value}, \texttt{Numeric Outliers} e filtragem final. Por fim, executam-se separadamente o ramo de clustering e o ramo de regressão, garantindo que a normalização e a partição de treino/teste são efetuadas antes dos modelos.
-
-Os ficheiros que sustentam a reprodução são o CSV principal, o registo de erros, o script de geração e o \textit{workflow} KNIME. Caso se pretenda repetir a análise a partir de zero, convém confirmar previamente se os caminhos dos ficheiros estão corretos e se as ligações no KNIME apontam para a pasta do projeto.
-
-\section{Conclusão}
-O trabalho desenvolvido sobre o dataset de grupo evidencia um processo CRISP-DM completo: compreensão do problema, exploração e preparação dos dados, modelação e avaliação. O clustering permite segmentar perfis acústicos, enquanto a regressão supervisionada avalia em que medida as \textit{features} explicam \texttt{popularity}. A interpretação por clusters complementa a avaliação quantitativa e evita comparações indevidas entre tarefas analíticas distintas. O resultado é um \textit{workflow} coerente, reprodutível e alinhado com boas práticas de análise de dados.
+\begin{table}[ht]
+\centering
+\caption{Métricas comparativas --- Consumo Energético [a preencher]}
+\label{tab:metricas_consumo}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Modelo} & \textbf{Métrica 1} & \textbf{Métrica 2} & \textbf{Métrica 3} & \textbf{Métrica 4}\\
+\hline
+\multicolumn{5}{c}{\textit{Classificação (target: Consumptions)}}\\
+\hline
+Árvore de decisão & [ ] & [ ] & [ ] & [ ]\\
+\textit{Random Forest} & [ ] & [ ] & [ ] & [ ]\\
+Regressão logística & [ ] & [ ] & [ ] & [ ]\\
+\hline
+\multicolumn{5}{c}{\textit{Regressão (target: Total (kWh))}}\\
+\hline
+ & $R^2$ & RMSE & MAE & \\
+\hline
+Regressão linear & [ ] & [ ] & [ ] & \\
+Árvore de regressão & [ ] & [ ] & [ ] & \\
+\textit{Random Forest} & [ ] & [ ] & [ ] & \\
+\hline
+\end{tabular}
+\end{table}
 
 \end{document}

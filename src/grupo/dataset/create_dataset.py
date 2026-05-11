@@ -2,12 +2,16 @@
 Generate synthetic Spotify tracks dataset with realistic audio features.
 100,000 tracks across 20 genres with per-genre feature distributions.
 
+Popularity is modelled as a Zipf-like base with small contributions from
+release year, genre identity and audio features.  The signal is deliberately
+kept weak so that R² in a regression model stays in the ~0.04-0.08 range,
+confirming that audio features alone cannot reliably predict popularity.
+
 Intentional data quality issues are injected into audio feature columns
 to simulate a real-world dirty dataset for the Data Preparation phase:
   - Missing values  (~3 % per audio feature column)
   - Numeric outliers (~0.7 % per affected column)
-  - Format/type errors — strings in numeric columns (~0.8 % per column)
-  - Duplicate rows (~0.5 % of total rows)
+  - Duplicate rows     (~0.5 % of total rows)
 
 A ground-truth log is exported to spotify_tracks_errors_log.csv.
 """
@@ -21,9 +25,9 @@ from pathlib import Path
 np.random.seed(42)
 random.seed(42)
 
-N = 20_000
-OUTPUT       = Path(__file__).parent / "spotify_tracks_b.csv"
-OUTPUT_ERRORS = Path(__file__).parent / "spotify_tracks_errors_log_b.csv"
+N = 100_000
+OUTPUT       = Path(__file__).parent / "spotify_tracks.csv"
+OUTPUT_ERRORS = Path(__file__).parent / "spotify_tracks_errors_log.csv"
 
 # Genre definitions with characteristic audio feature means
 GENRES = {
@@ -49,6 +53,31 @@ GENRES = {
     "k-pop":            dict(dance=0.78, energy=0.78, acoustic=0.12, speech=0.07, valence=0.70, tempo=124, loud=-5.5, instr=0.02),
 }
 GENRE_LIST = list(GENRES.keys())
+
+# Small per-genre popularity bias (~6 % of total variance)
+# Genres with mainstream appeal get a slight boost
+GENRE_POP_BIAS = {
+    "pop":              6,
+    "hip-hop":          8,
+    "rock":             3,
+    "metal":           -2,
+    "electronic":       5,
+    "classical":       -3,
+    "jazz":            -1,
+    "r&b":              4,
+    "country":          1,
+    "folk":            -2,
+    "reggae":           2,
+    "latin":            4,
+    "indie":           -1,
+    "blues":           -2,
+    "soul":             1,
+    "punk":             0,
+    "drum-and-bass":    3,
+    "ambient":         -4,
+    "gospel":           1,
+    "k-pop":            7,
+}
 
 # Weighted genre distribution (pop/hip-hop/rock dominate)
 _gw = np.array([0.15, 0.13, 0.12, 0.05, 0.08, 0.05, 0.05, 0.07, 0.06, 0.04,
@@ -137,10 +166,25 @@ for i in range(N):
     artist = rand_artist()
     feats = generate_features(gp)
 
-    # Popularity: Zipf-like, newer tracks slightly boosted
-    base_pop = int(np.clip(np.random.exponential(18), 0, 95))
-    year_bonus = int((year - 2000) / 24 * 10)
-    popularity = min(100, base_pop + year_bonus + random.randint(-5, 5))
+    # Popularity: Zipf-like base distribution
+    # Small contributions from genre, year and audio features
+    # The effect is intentionally weak → R² remains low
+    base_pop = int(np.clip(np.random.exponential(18), 0, 90))
+    year_bonus = int((year - 2000) / 24 * 8)
+    genre_bias = GENRE_POP_BIAS[genre]
+
+    # Subtle audio-feature signal (~±4 pts max combined)
+    feature_bonus = (
+        2.5 * (feats["danceability"] - gp["dance"]) +
+        1.5 * (feats["energy"]       - gp["energy"]) +
+        2.0 * (feats["valence"]      - gp["valence"]) -
+        2.0 * (feats["acousticness"] - gp["acoustic"]) +
+        1.0 * (feats["speechiness"]  - gp["speech"])
+    )
+
+    popularity = int(min(100, max(0,
+        base_pop + year_bonus + genre_bias + feature_bonus + random.randint(-10, 10)
+    )))
 
     duration_ms = int(np.clip(np.random.normal(210_000, 45_000), 90_000, 600_000))
     explicit = random.random() < (0.25 if genre in ["hip-hop", "metal", "punk", "r&b"] else 0.08)

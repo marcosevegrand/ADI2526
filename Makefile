@@ -19,3 +19,4 @@ relatorio:
 	rm -f "$(RELATORIO_DIR)"/*.run.xml
 	rm -f "$(RELATORIO_DIR)"/*.synctex.gz
 	rm -f "$(RELATORIO_DIR)"/*.toc
+	
