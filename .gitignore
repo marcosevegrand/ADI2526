@@ -7,3 +7,6 @@ relatorio.*
 
 # ignorar ficheiros locais
 *.local*
+
+# ambiente virtual local
+.venv/
