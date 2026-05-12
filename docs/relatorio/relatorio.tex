@@ -203,6 +203,9 @@ O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da
 \textbf{Interpretação.}
 A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} (contagem por \code{Cluster}) e \code{Cross Joiner} (total global), obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} --- que não integra o espaço de \textit{features} do \textit{clustering} --- foi reintroduzida via \code{Joiner} por \code{RowID}, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot} e um gráfico de barras empilhadas (Figura~\ref{fig:genero_cluster} no Anexo~\ref{anx:imagens_spotify}).
 
+\textbf{Validação.}
+A qualidade do agrupamento foi avaliada com o coeficiente de \textit{silhouette}. O método hierárquico (\textit{Euclidean}, \textit{linkage complete}) sobre uma amostra de 5\,000 linhas produziu um valor médio global de \textbf{0.0883}. Para os modelos \textit{k-means}, os valores médios observados foram \textbf{0.1802} para $k=4$, \textbf{0.1805} para $k=5$ e \textbf{0.1619} para $k=6$. Estes resultados mostram que $k=4$ e $k=5$ são muito próximos em termos de coesão/separação, ao passo que $k=6$ introduz maior fragmentação sem ganho correspondente de qualidade. A escolha final de $k=5$ apoia-se, por isso, na conjugação entre o método do cotovelo e a maior interpretabilidade semântica dos cinco perfis acústicos resultantes.
+
 \subsubsection{Classificação de género musical}
 
 A novidade face à versão anterior do \textit{workflow} é a inclusão de um ramo de classificação supervisionada que utiliza as mesmas 10 \textit{features} acústicas que alimentam o \textit{k-means}, mas com o objetivo de prever o género musical (20 classes). Este desenho permite contrastar diretamente a aprendizagem não supervisionada (agrupamento por semelhança acústica, sem conhecimento dos rótulos) com a aprendizagem supervisionada (classificação informada pelo género real), medindo até que ponto os atributos de áudio contêm sinal suficiente para discriminar estilos musicais.
@@ -220,9 +223,9 @@ Foram treinados dois modelos supervisionados:
 A escolha de partições diferentes (70/30 vs.~80/20) reflete uma preocupação metodológica: a MLP, por ser um modelo paramétrico com maior propensão ao sobreajustamento, beneficia de um conjunto de teste mais numeroso para validação fiável; a \textit{Random Forest}, enquanto método de \textit{ensemble}, tolera uma proporção de teste ligeiramente menor sem perda de robustez estatística.
 
 \textbf{Métricas.}
-A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen (que corrige a exatidão pela probabilidade de acerto aleatório, sendo particularmente informativo em problemas com 20 classes). A matriz de confusão visualizada no \textit{Heatmap (\#231)} permite inspecionar quais os géneros mais frequentemente confundidos (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}).
+A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen (que corrige a exatidão pela probabilidade de acerto aleatório, sendo particularmente informativo em problemas com 20 classes). Nesta fase do trabalho, apenas se encontram exportados os resultados do modelo \textit{Random Forest}; os resultados da MLP serão integrados numa revisão posterior. A matriz de confusão visualizada no \textit{Heatmap} permite inspecionar a distribuição dos erros por classe (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}).
 
-A Tabela~\ref{tab:metricas_class} sintetiza os resultados. A \textit{Random Forest} atinge uma exatidão de \textbf{68.16\%} (Kappa = 0.655), superando marginalmente a MLP com 67.67\% (Kappa = 0.648). Ambos os valores de Kappa, superiores a 0.64, indicam uma concordância substancial entre as previsões e os rótulos reais --- um resultado expressivo considerando que se trata de 20 classes a partir de apenas 10 \textit{features} exclusivamente acústicas.
+A Tabela~\ref{tab:metricas_class} sintetiza os resultados atualmente disponíveis. A \textit{Random Forest} com critério Gini e 200 árvores atinge uma exatidão global de \textbf{68.36\%} (Kappa = \textbf{0.6563}), o que constitui um resultado expressivo para um problema com 20 classes e apenas 10 \textit{features} acústicas contínuas. Este desempenho está muito acima da \textit{baseline} aleatória de 5\%, confirmando que o espaço acústico preserva informação discriminativa relevante sobre o género musical.
 
 \begin{table}[ht]
 \centering
@@ -232,8 +235,8 @@ A Tabela~\ref{tab:metricas_class} sintetiza os resultados. A \textit{Random Fore
 \hline
 \textbf{Modelo} & \textbf{Exatidão} & \textbf{Erro} & \textbf{Corretas} & \textbf{Incorretas} & \textbf{Kappa}\\
 \hline
-RProp MLP (70/30) & 0.6767 & 0.3233 & 20\,302 & 9\,698 & 0.6482\\
-\textit{Random Forest} (80/20) & 0.6816 & 0.3184 & 13\,632 & 6\,368 & 0.6545\\
+RProp MLP (70/30) & \textit{pendente} & \textit{pendente} & \textit{pendente} & \textit{pendente} & \textit{pendente}\\
+\textit{Random Forest} (80/20) & 0.6836 & 0.3164 & 13\,672 & 6\,328 & 0.6563\\
 \hline
 \end{tabular}
 \end{table}
@@ -245,9 +248,9 @@ A justaposição do ramo de classificação com o de \textit{clustering} é meto
     \item A classificação (supervisionada) aprende a fronteira de decisão a partir dos rótulos de género, medindo diretamente a separabilidade acústica das 20 classes.
 \end{itemize}
 
-O coeficiente de \textit{silhouette} de 0.16--0.18 obtido no \textit{clustering} sugere uma separação modesta entre grupos, o que é coerente com uma exatidão de classificação de \textbf{$\approx$68\%}: as \textit{features} acústicas contêm sinal discriminativo genuíno --- muito acima do acaso ($1/20 = 5\%$) --- mas a sobreposição natural entre géneros impede uma separação nítida. Por outras palavras, o \textit{clustering} encontra estrutura onde a classificação confirma que essa estrutura é informativa, mas não determinística.
+O coeficiente de \textit{silhouette} entre 0.1619 e 0.1805 obtido no \textit{clustering} sugere uma separação modesta entre grupos, o que é coerente com uma exatidão de classificação de \textbf{68.36\%}: as \textit{features} acústicas contêm sinal discriminativo genuíno --- muito acima do acaso ($1/20 = 5\%$) --- mas a sobreposição natural entre géneros impede uma separação nítida. Por outras palavras, o \textit{clustering} encontra estrutura onde a classificação confirma que essa estrutura é informativa, mas não determinística.
 
-A projeção PCA bidimensional das previsões da MLP (Figura~\ref{fig:class_pca} no Anexo~\ref{anx:imagens_spotify}), com os pontos coloridos segundo o género previsto, permite visualizar a sobreposição entre classes que explica simultaneamente a \textit{silhouette} modesta e a exatidão inferior a 100\%.
+A projeção PCA bidimensional das previsões da \textit{Random Forest} (Figura~\ref{fig:class_pca} no Anexo~\ref{anx:imagens_spotify}), com os pontos coloridos segundo o género previsto, permite visualizar a sobreposição entre classes que explica simultaneamente a \textit{silhouette} modesta e a exatidão inferior a 100\%.
 
 \subsubsection{Regressão da popularidade}
 
@@ -267,7 +270,7 @@ O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learn
 
 \subsection{Avaliação}
 
-A avaliação quantitativa da classificação baseou-se na exatidão, erro e coeficiente Kappa de Cohen, calculados sobre os conjuntos de teste através do nó \code{Scorer} (Tabela~\ref{tab:metricas_class}, apresentada na secção anterior). A avaliação da regressão baseou-se nas métricas $R^2$, MAE e RMSE, calculadas sobre o conjunto de teste através do nó \code{Numeric Scorer}. A Tabela~\ref{tab:metricas_spotify} sintetiza os valores observados para a regressão. A avaliação qualitativa é desenvolvida na secção de análise crítica (Secção~\ref{sec:analise_critica}).
+A avaliação quantitativa da classificação baseou-se na exatidão, erro e coeficiente Kappa de Cohen, calculados sobre os conjuntos de teste através do nó \code{Scorer} (Tabela~\ref{tab:metricas_class}, apresentada na secção anterior). Nesta versão do relatório, apenas estão disponíveis resultados exportados para a \textit{Random Forest} da classificação e para os modelos de \textit{clustering}. A avaliação da regressão será completada assim que os respetivos \code{Numeric Scorers} forem exportados. A avaliação qualitativa é desenvolvida na secção de análise crítica (Secção~\ref{sec:analise_critica}).
 
 \begin{table}[ht]
 \centering
@@ -277,9 +280,9 @@ A avaliação quantitativa da classificação baseou-se na exatidão, erro e coe
 \hline
 \textbf{Modelo} & $\mathbf{R^2}$ & \textbf{RMSE} & \textbf{MAE}\\
 \hline
-Regressão linear & 0.0459 & 18.194 & 13.718\\
-Árvore de regressão & -1.0436 & 26.626 & 19.795\\
-\textit{Random Forest} & 0.0321 & 18.325 & 13.896\\
+Regressão linear & \textit{pendente} & \textit{pendente} & \textit{pendente}\\
+Árvore de regressão & \textit{pendente} & \textit{pendente} & \textit{pendente}\\
+\textit{Random Forest} & \textit{pendente} & \textit{pendente} & \textit{pendente}\\
 \hline
 \end{tabular}
 \end{table}
@@ -291,13 +294,13 @@ Regressão linear & 0.0459 & 18.194 & 13.718\\
 
 Os resultados de \textit{clustering} mostram que existe estrutura nos dados musicais, mas a separação entre grupos não é nítida. Um coeficiente de \textit{silhouette} de 0.0883 no método hierárquico constitui um sinal de sobreposição relevante entre \textit{clusters}, o que é consistente com a natureza do domínio: diferentes faixas podem partilhar níveis semelhantes de energia, valência e dançabilidade sem que isso se traduza em grupos radicalmente distintos. Em termos práticos, o \textit{clustering} revela-se mais útil como ferramenta de segmentação exploratória do que como mecanismo de rotulagem rígida.
 
-A análise dos centróides por \textit{feature} permite identificar perfis sonoros diferenciados, e a composição dos \textit{clusters} por género musical confirma que os agrupamentos capturam afinidades estilísticas genuínas, ainda que com sobreposição. A estabilidade dos valores de \textit{silhouette} entre $k=4$ e $k=6$ (aproximadamente 0.16--0.18) sugere que a escolha de $k=5$ representa um compromisso razoável entre granularidade da segmentação e coesão interna dos grupos.
+A análise dos centróides por \textit{feature} permite identificar perfis sonoros diferenciados, e a composição dos \textit{clusters} por género musical confirma que os agrupamentos capturam afinidades estilísticas genuínas, ainda que com sobreposição. Em particular, o \textit{cluster\_0} apresenta o perfil mais acústico e instrumental (\code{acousticness} = 0.708; \code{instrumentalness} = 0.751), funcionando como um polo de faixas mais contemplativas e menos energéticas; o \textit{cluster\_1} concentra as faixas mais energéticas e rápidas (\code{energy} = 0.843; \code{tempo} = 0.614); e o \textit{cluster\_2} distingue-se pelo nível muito elevado de \code{danceability} (0.806) e \code{speechiness} (0.581), aproximando-se de géneros de matriz urbana. Os valores médios de \textit{silhouette} para \textit{k-means} foram 0.1802 para $k=4$, 0.1805 para $k=5$ e 0.1619 para $k=6$, o que mostra que $k=4$ e $k=5$ são praticamente equivalentes em qualidade geométrica. A preferência por $k=5$ resulta, assim, menos de um ganho quantitativo e mais de uma melhor legibilidade semântica dos perfis obtidos.
 
 \subsection{Leitura crítica da classificação de género}
 
-Os modelos de classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. Uma exatidão de \textbf{68.2\%} e um Kappa de \textbf{0.655} (\textit{Random Forest}) sobre 20 classes é um resultado expressivo, sobretudo quando se considera que a \textit{baseline} aleatória é de apenas 5\%. A proximidade entre a MLP (67.7\%) e a \textit{Random Forest} (68.2\%) sugere que a capacidade preditiva está limitada pela própria informação contida nas \textit{features} acústicas, e não pela flexibilidade do modelo --- ambos os algoritmos convergem para um patamar semelhante de desempenho.
+Os resultados atualmente disponíveis para classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. A \textit{Random Forest} atinge uma exatidão de \textbf{68.36\%} e um Kappa de \textbf{0.6563} sobre 20 classes, um resultado expressivo quando comparado com a \textit{baseline} aleatória de 5\%. Nesta fase ainda não foi possível integrar os resultados exportados da MLP; por isso, a leitura crítica incide apenas sobre o modelo \textit{ensemble} já documentado.
 
-A análise da matriz de confusão (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}) revela que as confusões não são aleatórias, mas sim estruturadas por afinidade acústica: géneros com propriedades sonoras semelhantes (e.g., \textit{hip-hop} e \textit{R\&B}, \textit{rock} e \textit{metal}, \textit{electronic} e \textit{pop}) são mais frequentemente trocados entre si. Este padrão é coerente com a intuição musical e, crucialmente, compatível com os resultados do \textit{clustering}, onde estes mesmos géneros tendem a co-ocorrer nos mesmos grupos.
+A leitura por classe mostra um comportamento muito desigual. A \textit{Random Forest} distingue quase perfeitamente géneros com assinatura acústica mais estável, como \textit{jazz} (\textit{recall} = 0.9900), \textit{classical} (0.9719), \textit{hip-hop} (0.9496) e \textit{ambient} (0.9487). Em contrapartida, classes como \textit{soul} (0.2799), \textit{k-pop} (0.4324), \textit{latin} (0.4356), \textit{r\&b} (0.4442) e \textit{gospel} (0.4539) revelam separação muito mais fraca. Esta assimetria é relevante: o modelo não falha de forma uniforme, mas sobretudo nos géneros mais híbridos ou estilisticamente próximos de outros grupos, sugerindo que a dificuldade do problema reside menos na complexidade do classificador e mais na sobreposição intrínseca entre classes no espaço acústico.
 
 A projeção PCA das previsões (Figura~\ref{fig:class_pca}) confirma visualmente esta sobreposição: as diferentes classes formam manchas com contornos difusos, com algumas classes mais compactas e outras dispersas, refletindo a variabilidade intra-género das propriedades acústicas.
 
@@ -306,34 +309,26 @@ A projeção PCA das previsões (Figura~\ref{fig:class_pca}) confirma visualment
 A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permite uma triangulação metodológica rara, com conclusões convergentes:
 
 \begin{enumerate}
-    \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} $> 0$). A classificação supervisionada recupera o género com $\approx$68\% de exatidão (muito acima dos 5\% do acaso). Isto demonstra que as \textit{features} acústicas do Spotify têm, de facto, poder discriminativo.
+    \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} positivo e estável entre 0.1619 e 0.1805). A classificação supervisionada recupera o género com 68.36\% de exatidão (muito acima dos 5\% do acaso). Isto demonstra que as \textit{features} acústicas do Spotify têm, de facto, poder discriminativo.
 
-    \item \textbf{A separação não é total}. A \textit{silhouette} modesta (0.08--0.18) é a contrapartida não supervisionada da exatidão de classificação de 68\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo, por mais flexível que seja, consegue eliminar.
+    \item \textbf{A separação não é total}. A \textit{silhouette} modesta (0.0883 no método hierárquico; 0.1619--0.1805 no \textit{k-means}) é a contrapartida não supervisionada da exatidão de classificação de 68.36\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo, por mais flexível que seja, consegue eliminar.
 
     \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} (Figura~\ref{fig:genero_cluster}) mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre uma técnica não supervisionada e outra supervisionada reforça a validade de ambas.
 
-    \item \textbf{Limite fundamental da representação acústica}. O facto de um classificador supervisionado com acesso ao \textit{ground truth} do género não ultrapassar os $\approx$68\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta: a própria representação dos dados impõe um teto à separabilidade.
+    \item \textbf{Limite fundamental da representação acústica}. O facto de o melhor classificador atualmente documentado não ultrapassar 68.36\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta: a própria representação dos dados impõe um teto à separabilidade.
 \end{enumerate}
 
 \subsection{Leitura crítica da regressão}
 
-A introdução do género musical como preditor (via \textit{one-hot encoding}) na regressão da popularidade produziu uma melhoria mensurável mas modesta na capacidade preditiva. A Tabela~\ref{tab:metricas_spotify} sintetiza os resultados.
+A regressão da popularidade já se encontra metodologicamente definida no \textit{workflow}, incluindo a introdução do género musical por \textit{one-hot encoding}, mas nesta fase ainda não existem resultados exportados consolidados para os três modelos. Por isso, esta subsecção fica necessariamente limitada a uma leitura prospetiva.
 
-O valor de $R^2 = 0.0459$ na regressão linear representa uma melhoria face aos $R^2 = 0.018$ da versão anterior (que usava apenas 13 preditores acústicos e de contexto). A duplicação da variância explicada (de 1.8\% para 4.6\%) confirma que o género musical transporta informação marginal sobre a popularidade, mas também revela que esta informação é limitada: mesmo conhecendo o género exato de uma faixa, 95.4\% da variância da popularidade permanece por explicar.
-
-A \textit{Random Forest} ($R^2 = 0.0321$, RMSE = 18.325) situa-se entre a regressão linear e a árvore simples, um resultado aquém do esperado para um modelo de \textit{ensemble} com 100 árvores. Este desempenho sugere que a relação entre as \textit{features} (acústicas e de género) e a popularidade é predominantemente ruído, e que modelos mais flexíveis não encontram estrutura adicional para além da capturada pelo modelo linear --- consistente com a hipótese de que o sinal preditivo é fraco.
-
-A árvore de regressão mantém $R^2$ negativo ($-1.044$), evidenciando sobreajustamento severo. A ausência de poda explícita faz com que a árvore memorize padrões espúrios do treino, generalizando pior do que um modelo constante que previsse a média.
-
-O RMSE de $\approx$18 pontos (numa escala de popularidade de 0--100) e o MAE de $\approx$14 pontos significam que, em média, os modelos erram a popularidade em cerca de 14--18 pontos --- um erro elevado face à amplitude da escala. Na prática, isto traduz-se em previsões pouco úteis para aplicações que exijam precisão.
-
-Estes resultados são coerentes com a intuição de domínio: a popularidade de uma faixa musical é influenciada por fatores externos ao áudio e ao género --- estratégias de marketing, notoriedade do artista, contexto cultural, exposição mediática e dinâmica de playlists --- que o \textit{dataset} sintético atual não captura. O género musical, embora marginalmente informativo (contribuindo com $\approx$2.8 pontos percentuais adicionais de $R^2$), não substitui estas variáveis de contexto sociocultural. A persistência de $R^2$ baixos nos três modelos, incluindo a \textit{Random Forest}, sugere que o limite fundamental não é a flexibilidade do modelo, mas sim a ausência de preditores com verdadeiro poder explicativo sobre a popularidade.
+Ainda assim, a formulação do problema continua teoricamente relevante: ao incorporar o género como variável explicativa, testa-se explicitamente a hipótese de que a popularidade não depende apenas do perfil acústico, mas também de uma camada editorial/cultural adicional. Esta hipótese é coerente com os resultados da classificação e do \textit{clustering}: se o género deixa sinal mensurável no espaço acústico, é plausível que também introduza alguma informação marginal na modelação da popularidade. A magnitude dessa contribuição, no entanto, terá de ser confirmada quando os resultados de regressão forem exportados.
 
 \subsection{Limitações}
 
 A principal limitação é a natureza sintética do \textit{dataset} que, embora gerado com distribuições inspiradas em dados reais, não substitui plenamente um catálogo musical autêntico. As relações entre \textit{features} acústicas e popularidade podem ser artificialmente atenuadas ou amplificadas pelo processo de geração, e a distribuição dos géneros (uniforme, 20 géneros com igual representação) não reflete a realidade do mercado musical, onde géneros como \textit{pop} e \textit{hip-hop} dominam em volume de produção.
 
-Adicionalmente, os valores de \textit{silhouette} obtidos, embora coerentes entre os métodos hierárquico e \textit{k-means}, variam com a amostragem (0.0883 em 5\,000 registos vs.~0.16--0.18 em 20\,000), o que sugere que a estimativa da qualidade do agrupamento é sensível ao tamanho e à composição da amostra. As métricas de regressão podem ainda ser influenciadas pelas estratégias de imputação e de tratamento de \textit{outliers} adotadas na preparação.
+Adicionalmente, os valores de \textit{silhouette} obtidos, embora coerentes entre os métodos hierárquico e \textit{k-means}, variam com a amostragem (0.0883 em 5\,000 registos vs.~0.1619--0.1805 em 20\,000), o que sugere que a estimativa da qualidade do agrupamento é sensível ao tamanho e à composição da amostra. As futuras métricas de regressão poderão ainda ser influenciadas pelas estratégias de imputação e de tratamento de \textit{outliers} adotadas na preparação.
 
 Por fim, a arquitetura de três ramos paralelos (\textit{clustering}, classificação, regressão) sobre o mesmo \textit{dataset} introduz o risco de \textit{data leakage} conceptual se as conclusões de um ramo forem usadas para justificar decisões noutro ramo sem o devido cuidado metodológico. A separação estrita dos fluxos no KNIME mitiga este risco operacionalmente, mas a independência analítica deve ser mantida na interpretação.
 
@@ -509,7 +504,7 @@ Procedimento análogo ao da Tarefa~1: abrir o \textit{workflow}, executar o bloc
 
 O trabalho desenvolvido demonstra a aplicação prática de duas metodologias de análise de dados --- CRISP-DM e SEMMA --- a problemas com naturezas distintas: um \textit{dataset} sintético de faixas musicais (Spotify) e um \textit{dataset} real de consumo energético com variáveis meteorológicas. Em ambos os casos, o processo completo foi implementado, desde a compreensão do problema e exploração dos dados até à preparação, modelação e avaliação crítica.
 
-Na Tarefa~1, o \textit{clustering} permitiu identificar cinco perfis acústicos diferenciados, interpretáveis por género musical, ainda que com sobreposição natural entre estilos. A classificação supervisionada do género, com base nas mesmas \textit{features} acústicas, atingiu $\approx$68\% de exatidão (Kappa $\approx 0.65$), validando a existência de sinal discriminativo genuíno nas propriedades de áudio e estabelecendo um limite superior empírico para a separabilidade dos géneros. A regressão da popularidade foi enriquecida com o \textit{one-hot encoding} do género, permitindo quantificar a contribuição marginal desta variável para a previsão do sucesso comercial --- embora, por natureza, a popularidade dependa de fatores socioculturais que transcendem o áudio e o género.
+Na Tarefa~1, o \textit{clustering} permitiu identificar cinco perfis acústicos diferenciados, interpretáveis por género musical, ainda que com sobreposição natural entre estilos. A classificação supervisionada do género, na sua versão atualmente documentada por \textit{Random Forest}, atingiu 68.36\% de exatidão (Kappa = 0.6563), validando a existência de sinal discriminativo genuíno nas propriedades de áudio e estabelecendo um limite superior empírico provisório para a separabilidade dos géneros. A regressão da popularidade foi enriquecida com o \textit{one-hot encoding} do género, mas a respetiva avaliação quantitativa ficará concluída apenas após exportação dos resultados dos três modelos.
 
 Na Tarefa~2, a combinação de modelos de classificação e regressão proporcionou uma dupla perspetiva sobre o problema do consumo energético: por um lado, a categorização dos níveis de procura em função das condições meteorológicas; por outro, a previsão quantitativa do consumo total. A integração de variáveis climáticas e temporais enriqueceu o espaço de \textit{features} e mostrou-se promissora para aplicações de previsão de carga.
 
@@ -606,8 +601,8 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.95\textwidth]{Heatmap - Genres_Prediction_RProp_MLP.png}
-    \caption{Matriz de confusão --- classificação de género via RProp MLP (20 classes)}
+    \includegraphics[width=0.95\textwidth]{Heatmap - Genres_Prediction_Random_Forest.png}
+    \caption{Matriz de confusão --- classificação de género via \textit{Random Forest} (20 classes)}
     \label{fig:class_heatmap}
 \end{figure}
 
