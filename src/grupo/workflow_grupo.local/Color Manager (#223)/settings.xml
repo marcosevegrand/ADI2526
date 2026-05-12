@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <entry key="selected_column" type="xstring" value="Prediction (genre)"/>
+        <entry key="is_nominal" type="xboolean" value="true"/>
+        <entry key="palette_option" type="xstring" value="custom_set"/>
+        <entry key="ambient" type="xint" value="10079487"/>
+        <entry key="blues" type="xint" value="6724095"/>
+        <entry key="classical" type="xint" value="0"/>
+        <entry key="country" type="xint" value="13311"/>
+        <entry key="drum-and-bass" type="xint" value="204"/>
+        <entry key="electronic" type="xint" value="39321"/>
+        <entry key="folk" type="xint" value="13382655"/>
+        <entry key="gospel" type="xint" value="16724940"/>
+        <entry key="hip-hop" type="xint" value="16737894"/>
+        <entry key="indie" type="xint" value="16724787"/>
+        <entry key="jazz" type="xint" value="16750848"/>
+        <entry key="k-pop" type="xint" value="13434675"/>
+        <entry key="latin" type="xint" value="6736896"/>
+        <entry key="metal" type="xint" value="6750054"/>
+        <entry key="pop" type="xint" value="11622696"/>
+        <entry key="punk" type="xint" value="6962586"/>
+        <entry key="r&amp;b" type="xint" value="2062516"/>
+        <entry key="reggae" type="xint" value="16744192"/>
+        <entry key="rock" type="xint" value="11722634"/>
+        <entry key="soul" type="xint" value="16629615"/>
+        <config key="values">
+            <entry key="array-size" type="xint" value="20"/>
+            <config key="0">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="ambient"/>
+                </config>
+            </config>
+            <config key="1">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="blues"/>
+                </config>
+            </config>
+            <config key="2">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="classical"/>
+                </config>
+            </config>
+            <config key="3">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="country"/>
+                </config>
+            </config>
+            <config key="4">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="drum-and-bass"/>
+                </config>
+            </config>
+            <config key="5">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="electronic"/>
+                </config>
+            </config>
+            <config key="6">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="folk"/>
+                </config>
+            </config>
+            <config key="7">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="gospel"/>
+                </config>
+            </config>
+            <config key="8">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="hip-hop"/>
+                </config>
+            </config>
+            <config key="9">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="indie"/>
+                </config>
+            </config>
+            <config key="10">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="jazz"/>
+                </config>
+            </config>
+            <config key="11">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="k-pop"/>
+                </config>
+            </config>
+            <config key="12">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="latin"/>
+                </config>
+            </config>
+            <config key="13">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="metal"/>
+                </config>
+            </config>
+            <config key="14">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="pop"/>
+                </config>
+            </config>
+            <config key="15">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="punk"/>
+                </config>
+            </config>
+            <config key="16">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="r&amp;b"/>
+                </config>
+            </config>
+            <config key="17">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="reggae"/>
+                </config>
+            </config>
+            <config key="18">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="rock"/>
+                </config>
+            </config>
+            <config key="19">
+                <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <config key="org.knime.core.data.def.StringCell">
+                    <entry key="StringCell" type="xstring" value="soul"/>
+                </config>
+            </config>
+        </config>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"/>
+    <entry key="node-name" type="xstring" value="Color Manager"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.v202602201626"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME Base nodes"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.11.0.v202602211509"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="Color Manager"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 20000, Cols: 34"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+        <config key="port_2">
+            <entry key="index" type="xint" value="2"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.port.viewproperty.ColorHandlerPortObject"/>
+            <entry key="port_object_summary" type="xstring" value="Coloring on &quot;Prediction (genre)&quot;"/>
+            <entry key="port_spec_location" type="xstring" value="spec/spec.zip"/>
+            <entry key="port_object_location" type="xstring" value="object/portobject.zip"/>
+            <entry key="port_dir_location" type="xstring" value="port_2"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="85949438-cc9b-40b5-8f35-8d12da4e4b81"/>
+    </config>
+</config>

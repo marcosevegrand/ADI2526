@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <entry key="script" type="xstring" value="if(%%00010    $[&quot;popularity&quot;] &lt; 0 or $[&quot;popularity&quot;] &gt; 100,%%00010    MISSING,%%00010    $[&quot;popularity&quot;]%%00010)"/>
+        <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+        <entry key="createdColumn" type="xstring" value="New Column"/>
+        <entry key="replacedColumn" type="xstring" value="popularity"/>
+        <entry key="languageVersion" type="xint" value="1"/>
+        <entry key="builtinFunctionsVersion" type="xint" value="1"/>
+        <entry key="builtinAggregationsVersion" type="xint" value="1"/>
+        <config key="additionalExpressions">
+            <config key="0">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;danceability&quot;] &lt; 0 or $[&quot;danceability&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;danceability&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="danceability"/>
+            </config>
+            <config key="1">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;energy&quot;] &lt; 0 or $[&quot;energy&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;energy&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="energy"/>
+            </config>
+            <config key="2">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;speechiness&quot;] &lt; 0 or $[&quot;speechiness&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;speechiness&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="speechiness"/>
+            </config>
+            <config key="3">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;acousticness&quot;] &lt; 0 or $[&quot;acousticness&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;acousticness&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="acousticness"/>
+            </config>
+            <config key="4">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;instrumentalness&quot;] &lt; 0 or $[&quot;instrumentalness&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;instrumentalness&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="instrumentalness"/>
+            </config>
+            <config key="5">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;liveness&quot;] &lt; 0 or $[&quot;liveness&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;liveness&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="liveness"/>
+            </config>
+            <config key="6">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;valence&quot;] &lt; 0 or $[&quot;valence&quot;] &gt; 1,%%00010    MISSING,%%00010    $[&quot;valence&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="valence"/>
+            </config>
+            <config key="7">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;key&quot;] &lt; 0 or $[&quot;key&quot;] &gt; 11,%%00010    MISSING,%%00010    $[&quot;key&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="key"/>
+            </config>
+            <config key="8">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;mode&quot;] != 0 and $[&quot;mode&quot;] != 1,%%00010    MISSING,%%00010    $[&quot;mode&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="mode"/>
+            </config>
+            <config key="9">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;time_signature&quot;] != 3 and%%00010    $[&quot;time_signature&quot;] != 4 and%%00010    $[&quot;time_signature&quot;] != 5 and%%00010    $[&quot;time_signature&quot;] != 6 and%%00010    $[&quot;time_signature&quot;] != 7,%%00010    MISSING,%%00010    $[&quot;time_signature&quot;]%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="time_signature"/>
+            </config>
+            <config key="10">
+                <entry key="script" type="xstring" value="if(%%00010    $[&quot;explicit&quot;] == &quot;True&quot;,%%00010    1,%%00010    if(%%00010        $[&quot;explicit&quot;] == &quot;False&quot;,%%00010        0,%%00010        MISSING%%00010    )%%00010)"/>
+                <entry key="columnOutputMode" type="xstring" value="REPLACE_EXISTING"/>
+                <entry key="createdColumn" type="xstring" value="New Column"/>
+                <entry key="replacedColumn" type="xstring" value="explicit"/>
+            </config>
+            <config key="11">
+                <entry key="script" type="xstring" value="$[&quot;duration_ms&quot;] / 60000.0"/>
+                <entry key="columnOutputMode" type="xstring" value="APPEND"/>
+                <entry key="createdColumn" type="xstring" value="duration_min"/>
+                <entry key="replacedColumn" type="xstring" value=""/>
+            </config>
+        </config>
+    </config>
+    <config key="variables"/>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.expressions.node.row.mapper.ExpressionRowMapperNodeFactory"/>
+    <entry key="node-name" type="xstring" value="Expression"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Expressions"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base.expressions"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.v202602211516"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME Expressions"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.expressions.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.11.0.v202602211516"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="Expression"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 100000, Cols: 22"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="9dc144bd-270c-4204-a657-72dd8febbbdc"/>
+    </config>
+</config>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="COL_">
+            <entry key="NRATTR" type="xint" value="10"/>
+            <entry key="FAILONMISSINGCOLS" type="xboolean" value="false"/>
+            <config key="Attribute_0">
+                <entry key="NAME" type="xstring" value="danceability"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.3542451194259412"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.8064512179187883"/>
+                <entry key="MIN" type="xdouble" value="0.3542451194259412"/>
+                <entry key="MAX" type="xdouble" value="0.8064512179187883"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_1">
+                <entry key="NAME" type="xstring" value="energy"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.2904433516253672"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.8425304900348474"/>
+                <entry key="MIN" type="xdouble" value="0.2904433516253672"/>
+                <entry key="MAX" type="xdouble" value="0.8425304900348474"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_2">
+                <entry key="NAME" type="xstring" value="loudness"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.30654315402795335"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.5721937383704347"/>
+                <entry key="MIN" type="xdouble" value="0.30654315402795335"/>
+                <entry key="MAX" type="xdouble" value="0.5721937383704347"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_3">
+                <entry key="NAME" type="xstring" value="speechiness"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.12280186500306821"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.5807333609008501"/>
+                <entry key="MIN" type="xdouble" value="0.12280186500306821"/>
+                <entry key="MAX" type="xdouble" value="0.5807333609008501"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_4">
+                <entry key="NAME" type="xstring" value="acousticness"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.11105101532833846"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.7083333903191761"/>
+                <entry key="MIN" type="xdouble" value="0.11105101532833846"/>
+                <entry key="MAX" type="xdouble" value="0.7083333903191761"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_5">
+                <entry key="NAME" type="xstring" value="instrumentalness"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.03915171243521066"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.7513624303597282"/>
+                <entry key="MIN" type="xdouble" value="0.03915171243521066"/>
+                <entry key="MAX" type="xdouble" value="0.7513624303597282"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_6">
+                <entry key="NAME" type="xstring" value="liveness"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.2984516886129888"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.30208664301241583"/>
+                <entry key="MIN" type="xdouble" value="0.2984516886129888"/>
+                <entry key="MAX" type="xdouble" value="0.30208664301241583"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_7">
+                <entry key="NAME" type="xstring" value="valence"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.44756824563507724"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.691050496203451"/>
+                <entry key="MIN" type="xdouble" value="0.44756824563507724"/>
+                <entry key="MAX" type="xdouble" value="0.691050496203451"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_8">
+                <entry key="NAME" type="xstring" value="tempo"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.40654489725365817"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.613579623313682"/>
+                <entry key="MIN" type="xdouble" value="0.40654489725365817"/>
+                <entry key="MAX" type="xdouble" value="0.613579623313682"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+            <config key="Attribute_9">
+                <entry key="NAME" type="xstring" value="duration_min"/>
+                <entry key="VALIDMIN" type="xdouble" value="0.3815189765294792"/>
+                <entry key="VALIDMAX" type="xdouble" value="0.38430936378415714"/>
+                <entry key="MIN" type="xdouble" value="0.3815189765294792"/>
+                <entry key="MAX" type="xdouble" value="0.38430936378415714"/>
+                <entry key="BACKGROUND" type="xstring" value="175.220.240"/>
+                <entry key="INTERVAL" type="xstring" value="105.150.170"/>
+                <entry key="BEND" type="xstring" value="0.255.0"/>
+                <entry key="OUTLYINGBEND" type="xstring" value="255.0.0"/>
+                <entry key="SELECTED" type="xboolean" value="true"/>
+                <entry key="ISDOUBLE" type="xboolean" value="true"/>
+            </config>
+        </config>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.ext.svg.node.radarplot.RadarplotAppenderFactory"/>
+    <entry key="node-name" type="xstring" value="Radar Plot Appender"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME SVG Support"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.ext.svg"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.v202602031322"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME SVG Support"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.ext.svg.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.11.0.v202602031322"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="Radar Plot Appender"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 5, Cols: 11"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="41f787ee-7fa0-4139-b91f-c8a6025c9e40"/>
+    </config>
+</config>
