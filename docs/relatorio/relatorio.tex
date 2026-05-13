@@ -119,7 +119,7 @@ O bloco de \textit{Data Understanding} do \textit{workflow} foi implementado com
 
 O nó \code{Statistics (\#3)} foi configurado para 12 colunas numéricas --- \code{release\_year}, \code{popularity}, \code{duration\_ms}, \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence} e \code{tempo} --- e revelou, de forma quantitativa, os problemas centrais do dataset. As \textit{features} acústicas apresentam cerca de 3\,000 valores em falta por coluna (por exemplo: 3\,013 em \code{danceability}, 3\,021 em \code{speechiness} e 3\,026 em \code{tempo}). Em paralelo, várias colunas limitadas teoricamente ao intervalo $[0,1]$ exibem violações claras de domínio, como \code{danceability} com mínimo $-0.299$ e máximo $1.497$, \code{energy} com mínimo $-0.298$ e máximo $1.498$, e \code{valence} com mínimo $-0.300$ e máximo $1.497$. Detetaram-se ainda extremos artificiais em \code{loudness} (até $-89.95$ dB) e \code{tempo} (até 419.95 BPM), consistentes com a injeção deliberada de \textit{outliers} prevista no gerador.
 
-A componente categórica foi examinada com cinco nós \code{Value Counter}, cobrindo \code{genre} (20 géneros confirmados), \code{explicit}, \code{mode}, \code{key} e \code{time\_signature}. A exploração univariada assentou em 12 histogramas e 7 \textit{boxplots} (Figuras~\ref{fig:spotify_histogramas} e~\ref{fig:spotify_boxplots} no Anexo~\ref{anx:imagens_spotify}), que documentaram as distribuições das variáveis contínuas. As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pares \code{energy--loudness}, \code{energy--acousticness}, \code{danceability--valence} e \code{release\_year--popularity} --- e uma matriz de correlação linear sobre 15 colunas (Figura~\ref{fig:spotify_corr} no Anexo~\ref{anx:imagens_spotify}).
+A componente categórica foi examinada com cinco nós \code{Value Counter}, cobrindo \code{genre} (20 géneros confirmados), \code{explicit}, \code{mode}, \code{key} e \code{time\_signature}. A exploração univariada assentou em 12 histogramas e 7 \textit{boxplots} (Figuras~\ref{fig:spotify_histogramas} e~\ref{fig:spotify_boxplots} no Anexo~\ref{anx:imagens_spotify}), que documentaram as distribuições das variáveis contínuas. As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pares \code{energy--loudness}, \code{energy--acousticness}, \code{danceability--valence} e \code{release\_year--popularity} --- e uma matriz de correlação linear sobre 15 colunas, posteriormente visualizada em \code{Heatmap (\#240)} (Figura~\ref{fig:spotify_corr} no Anexo~\ref{anx:imagens_spotify}).
 
 A deteção de duplicados foi realizada através do par \code{GroupBy (\#40)} + \code{Row Filter (\#39)}, que isolou 500 registos repetidos, confirmando a injeção de duplicados prevista pelo gerador.
 
@@ -143,7 +143,7 @@ Duplicados & \code{GroupBy} e \code{Row Filter} isolam exatamente 500 casos & Re
 
 \subsection{Preparação dos dados}
 
-A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering} e regressão. A Figura~\ref{fig:pipeline_spotify} (Anexo~\ref{anx:imagens_spotify}) ilustra a configuração do pipeline no KNIME.
+A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering}, classificação e regressão. A Figura~\ref{fig:pipeline_spotify} (Anexo~\ref{anx:imagens_spotify}) ilustra a configuração do pipeline no KNIME.
 
 \subsubsection{Remoção de duplicados}
 
@@ -158,8 +158,7 @@ O nó \code{Expression (\#42)} concentra num único ponto oito transformações 
     \item conversão de violações do intervalo $[0,1]$ nas \textit{features} de áudio (\code{danceability}, \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness} e \code{valence}) para \textit{missing};
     \item conversão de valores inválidos de \code{key}, \code{mode} e \code{time\_signature} para \textit{missing};
     \item codificação binária da variável \code{explicit} ($\text{True} \rightarrow 1$, $\text{False} \rightarrow 0$);
-    \item criação do atributo derivado \code{duration\_min} (=\ \code{duration\_ms}\ /\ 60\,000), mais interpretável do que milissegundos;
-    \item criação da classe auxiliar \code{popularity\_class} com três níveis (Baixa, Média, Alta) para estratificação.
+    \item criação do atributo derivado \code{duration\_min} (=\ \code{duration\_ms}\ /\ 60\,000), mais interpretável do que milissegundos.
 \end{itemize}
 
 Esta etapa é metodologicamente relevante porque, em vez de eliminar precocemente as linhas problemáticas, opta por converter violações de domínio em valores em falta, delegando a decisão para o nó seguinte.
@@ -171,10 +170,10 @@ O nó \code{Missing Value (\#43)} recebe tanto os valores em falta originais do 
 \begin{itemize}
     \item \textbf{Média}: \code{danceability}, \code{valence}.
     \item \textbf{Mediana}: \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{loudness}, \code{tempo}, \code{duration\_ms}.
-    \item \textbf{Remover linha}: \code{popularity} (target).
+    \item \textbf{Remover linha}: \code{popularity} (target), caso a sanitização anterior o converta em \textit{missing}.
 \end{itemize}
 
-Após esta fase, o \textit{dataset} regista 99\,353 linhas (menos 647 face às 100\,000 anteriores), correspondendo às linhas cujo target \code{popularity} era inválido e não foi imputado.
+No estado executado atual do \textit{workflow}, esta fase não reduziu o número de linhas: o \textit{dataset} mantém-se com \textbf{100\,000 registos}, o que mostra que a estratégia de imputação e validação foi suficiente para preservar integralmente a base após a remoção inicial de duplicados.
 
 \subsubsection{Tratamento de \textit{outliers}}
 
@@ -182,12 +181,12 @@ Os \textit{outliers} contínuos são tratados no nó \code{Numeric Outliers (\#4
 
 \subsubsection{Seleção de variáveis e separação de ramos}
 
-O nó \code{Column Filter (\#47)} reduz o \textit{dataset} a 15 colunas, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), colunas redundantes (\code{duration\_ms}, substituída por \code{duration\_min}), e os atributos \code{key} e \code{time\_signature}. A coluna \code{genre}, ao contrário da versão anterior do \textit{workflow}, é preservada em todos os ramos. A base comum resultante contém 99\,353 linhas e 15 colunas, a partir da qual se abrem três ramos:
+O nó \code{Column Filter (\#47)} reduz o \textit{dataset} à base comum efetivamente usada pelos ramos de modelação, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), a coluna redundante \code{duration\_ms} (substituída por \code{duration\_min}) e os atributos \code{key}, \code{mode} e \code{time\_signature}. A coluna \code{genre}, ao contrário da versão anterior do \textit{workflow}, é preservada. O resultado executado do nó apresenta \textbf{100\,000 linhas} e \textbf{14 colunas}, a partir das quais se abrem três ramos:
 
 \begin{itemize}
     \item \textbf{Ramo de \textit{clustering}}: reduzido a 10 \textit{features} acústicas normalizadas (Min-Max para $[0,1]$) --- sem género, que é reintroduzido apenas no pós-processamento para interpretação (\code{Joiner (\#136)} por \code{RowID});
-    \item \textbf{Ramo de classificação}: filtra 11 colunas --- as 10 \textit{features} acústicas normalizadas mais o target \code{genre} --- e divide-se em dois sub-ramos com partições independentes (70/30 para a rede neuronal, 80/20 para a \textit{Random Forest}), ambas estratificadas por género com \textit{seed}=1;
-    \item \textbf{Ramo de regressão}: o nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação. O nó \code{One to Many (\#221)} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo o espaço de \textit{features} para 34 colunas. Segue-se a partição treino/teste (80/20, estratificada por \code{popularity\_class}, \textit{seed}=1), normalização Min-Max sobre as \textit{features} e remoção de \code{popularity\_class} no treino e no teste. As \textit{features} finais de regressão são 33 preditores --- \code{release\_year}, \code{explicit}, as 10 \textit{features} de áudio, \code{mode}, \code{duration\_min} e as 20 dummies de género --- com target \code{popularity}.
+    \item \textbf{Ramo de classificação}: o \code{Column Filter (\#220)} isola 11 colunas --- as 10 \textit{features} acústicas mais o target \code{genre} --- e a \code{Table Partitioner (\#234)} cria uma única partição 80/20, estratificada por género e com \textit{seed}=1, partilha essa separação entre a MLP e a \textit{Random Forest};
+    \item \textbf{Ramo de regressão}: o nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação. O nó \code{One to Many (\#221)} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo a tabela para 34 colunas totais. Após a partição treino/teste (80/20, estratificada por \code{popularity\_class}, \textit{seed}=1) e a remoção de \code{popularity\_class}, os modelos recebem \textbf{32 preditores} e o target \code{popularity}.
 \end{itemize}
 
 \subsection{Modelação}
@@ -198,13 +197,13 @@ O nó \code{Column Filter (\#47)} reduz o \textit{dataset} a 15 colunas, removen
 A seleção do número de \textit{clusters} baseou-se no método do cotovelo. Foram executadas sete experiências de \textit{k-means} para valores de $k \in \{3, 4, 5, 6, 7, 8, 9\}$, com inicialização aleatória, \textit{seed}=1 e 99 iterações máximas. Em cada ramo candidato, a soma das distâncias quadradas intra-\textit{cluster} (WCSS) foi calculada manualmente: o nó \code{Joiner} associa cada ponto ao centróide do respetivo \textit{cluster}, o nó \code{Math Formula} calcula a distância euclidiana quadrada às 10 coordenadas do centróide, e o nó \code{GroupBy} agrega os valores. As sete linhas de WCSS foram concatenadas e representadas graficamente (Figura~\ref{fig:elbow} no Anexo~\ref{anx:imagens_spotify}).
 
 \textbf{Modelo final.}
-O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da curva do cotovelo. O nó \code{k-Means (\#141)} produz diretamente a coluna \code{Cluster}, dispensando um \textit{assigner} separado. Os centróides foram transformados para formato longo (\code{Unpivot}) e visualizados num gráfico de barras agrupado (Figura~\ref{fig:centroides} no Anexo~\ref{anx:imagens_spotify}), que permite comparar o perfil acústico médio de cada \textit{cluster} nas 10 \textit{features} normalizadas.
+O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da curva do cotovelo. O nó \code{k-Means (\#141)} produz diretamente a coluna \code{Cluster}, dispensando um \textit{assigner} separado. Os perfis médios dos cinco \textit{clusters} foram depois exportados e visualizados individualmente (Figura~\ref{fig:centroides} no Anexo~\ref{anx:imagens_spotify}), permitindo comparar as 10 \textit{features} normalizadas cluster a cluster.
 
 \textbf{Interpretação.}
 A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} (contagem por \code{Cluster}) e \code{Cross Joiner} (total global), obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} --- que não integra o espaço de \textit{features} do \textit{clustering} --- foi reintroduzida via \code{Joiner} por \code{RowID}, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot} e um gráfico de barras empilhadas (Figura~\ref{fig:genero_cluster} no Anexo~\ref{anx:imagens_spotify}).
 
 \textbf{Validação.}
-A qualidade do agrupamento foi avaliada com o coeficiente de \textit{silhouette}. O método hierárquico (\textit{Euclidean}, \textit{linkage complete}) sobre uma amostra de 5\,000 linhas produziu um valor médio global de \textbf{0.0883}. Para os modelos \textit{k-means}, os valores médios observados foram \textbf{0.1802} para $k=4$, \textbf{0.1805} para $k=5$ e \textbf{0.1619} para $k=6$. Estes resultados mostram que $k=4$ e $k=5$ são muito próximos em termos de coesão/separação, ao passo que $k=6$ introduz maior fragmentação sem ganho correspondente de qualidade. A escolha final de $k=5$ apoia-se, por isso, na conjugação entre o método do cotovelo e a maior interpretabilidade semântica dos cinco perfis acústicos resultantes.
+A qualidade do agrupamento foi avaliada com o coeficiente de \textit{silhouette}. O método hierárquico (\textit{Euclidean}, \textit{linkage complete}) operou sobre uma amostra de \textbf{2\,000 linhas} e produziu um valor médio global de \textbf{0.0883}. Para os modelos \textit{k-means}, os valores médios observados foram \textbf{0.1802} para $k=4$, \textbf{0.1805} para $k=5$ e \textbf{0.1619} para $k=6$, calculados sobre amostras de \textbf{30\,000 linhas}. Estes resultados mostram que $k=4$ e $k=5$ são muito próximos em termos de coesão/separação, ao passo que $k=6$ introduz maior fragmentação sem ganho correspondente de qualidade. A escolha final de $k=5$ apoia-se, por isso, na conjugação entre o método do cotovelo e a maior interpretabilidade semântica dos cinco perfis acústicos resultantes.
 
 \subsubsection{Classificação de género musical}
 
@@ -216,16 +215,16 @@ O ramo de classificação parte da base comum pós-preparação. O nó \code{Col
 Foram treinados dois modelos supervisionados:
 
 \begin{itemize}
-    \item \textbf{RProp MLP (\#226)}: rede neuronal \textit{feedforward} com uma camada escondida de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 200 iterações (\textit{seed}=1). A partição é 70/30 (treino/teste), estratificada por género, resultando em 70\,000 exemplos de treino e 30\,000 de teste.
-    \item \textbf{\textit{Random Forest} (\#235)}: \textit{ensemble} de 200 árvores de decisão, critério Gini, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. A partição é 80/20 (treino/teste), estratificada por género, resultando em 80\,000 exemplos de treino e 20\,000 de teste.
+    \item \textbf{RProp MLP (\#226)}: rede neuronal \textit{feedforward} com \textbf{duas camadas escondidas} de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 200 iterações (\textit{seed}=1). Usa a mesma partição 80/20 estratificada por género, resultando em 80\,000 exemplos de treino e 20\,000 de teste.
+    \item \textbf{\textit{Random Forest} (\#235)}: \textit{ensemble} de \textbf{100 árvores} de decisão, critério Gini, profundidade máxima 20, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. Usa a mesma partição 80/20 estratificada por género.
 \end{itemize}
 
-A escolha de partições diferentes (70/30 vs.~80/20) reflete uma preocupação metodológica: a MLP, por ser um modelo paramétrico com maior propensão ao sobreajustamento, beneficia de um conjunto de teste mais numeroso para validação fiável; a \textit{Random Forest}, enquanto método de \textit{ensemble}, tolera uma proporção de teste ligeiramente menor sem perda de robustez estatística. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade sobre configurações exportadas, incluindo diferentes profundidades/capacidades do conjunto, critério de divisão (Gini vs.~\textit{Information Gain Ratio}) e número de árvores. Este estudo permite avaliar não apenas o desempenho do modelo final, mas também a estabilidade do problema de classificação face a alterações de hiperparâmetros.
+O uso de uma partição partilhada entre os dois classificadores torna a comparação direta metodologicamente mais limpa: MLP e \textit{Random Forest} são avaliadas sobre exatamente o mesmo conjunto de teste. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade sobre configurações exportadas fora do ramo principal, incluindo diferentes profundidades/capacidades do conjunto, critério de divisão (Gini vs.~\textit{Information Gain Ratio}) e número de árvores. Este estudo permite avaliar não apenas o desempenho do modelo do \textit{workflow}, mas também a estabilidade do problema de classificação face a alterações de hiperparâmetros.
 
 \textbf{Métricas.}
-A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen (que corrige a exatidão pela probabilidade de acerto aleatório, sendo particularmente informativo em problemas com 20 classes). Nesta fase do trabalho, os resultados exportados da MLP continuam indisponíveis, mas a família \textit{Random Forest} foi analisada em múltiplas configurações. A matriz de confusão visualizada no \textit{Heatmap} permite inspecionar a distribuição dos erros por classe (Figura~\ref{fig:class_heatmap} no Anexo~\ref{anx:imagens_spotify}).
+A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen (que corrige a exatidão pela probabilidade de acerto aleatório, sendo particularmente informativo em problemas com 20 classes). No \textit{workflow} executado, os dois classificadores encontram-se avaliados. Para a inspeção visual dos erros por classe, o ramo da MLP utiliza as visualizações \code{PCA (\#230)} + \code{Scatter Plot (\#222)} + \code{Heatmap (\#231)}, enquanto o ramo da \textit{Random Forest} usa \code{PCA (\#243)} + \code{Color Manager (\#245)} + \code{Scatter Plot (\#244)} + \code{Heatmap (\#241)}.
 
-A Tabela~\ref{tab:metricas_class} sintetiza os resultados atualmente disponíveis. A configuração base do \textit{workflow} (Gini, 200 árvores) atinge \textbf{68.36\%} de exatidão (Kappa = \textbf{0.6563}). O melhor resultado exportado corresponde à configuração Gini com 500 árvores, com \textbf{68.44\%} de exatidão e Kappa de \textbf{0.6571}. O ganho absoluto de apenas 0.08 pontos percentuais mostra que o problema satura rapidamente: aumentar a complexidade do conjunto melhora pouco porque a limitação principal parece residir na sobreposição entre classes, e não na capacidade do algoritmo.
+A Tabela~\ref{tab:metricas_class} sintetiza os resultados do \textit{workflow} executado. A \textit{Random Forest} atinge \textbf{68.38\%} de exatidão (Kappa = \textbf{0.6564}), enquanto a MLP obtém \textbf{68.15\%} (Kappa = \textbf{0.6542}). A vantagem da \textit{Random Forest} é real mas pequena, sugerindo que ambos os modelos exploram um sinal semelhante e que a limitação principal reside na sobreposição entre classes. Em experiências adicionais exportadas fora do ramo principal, a melhor \textit{Random Forest} sobe apenas para 68.44\%, o que confirma uma saturação rápida do desempenho.
 
 \begin{table}[ht]
 \centering
@@ -235,9 +234,8 @@ A Tabela~\ref{tab:metricas_class} sintetiza os resultados atualmente disponívei
 \hline
 \textbf{Modelo} & \textbf{Exatidão} & \textbf{Erro} & \textbf{Corretas} & \textbf{Incorretas} & \textbf{Kappa}\\
 \hline
-RProp MLP (70/30) & \textit{pendente} & \textit{pendente} & \textit{pendente} & \textit{pendente} & \textit{pendente}\\
-\textit{Random Forest} base (Gini, 200 árvores) & 0.6836 & 0.3164 & 13\,672 & 6\,328 & 0.6563\\
-\textit{Random Forest} melhor configuração (Gini, 500 árvores) & 0.6844 & 0.3156 & 13\,688 & 6\,312 & 0.6571\\
+RProp MLP (80/20) & 0.6815 & 0.3185 & 13\,630 & 6\,370 & 0.6542\\
+\textit{Random Forest} (80/20, 100 árvores) & 0.6838 & 0.3162 & 13\,675 & 6\,325 & 0.6564\\
 \hline
 \end{tabular}
 \end{table}
@@ -249,25 +247,25 @@ A justaposição do ramo de classificação com o de \textit{clustering} é meto
     \item A classificação (supervisionada) aprende a fronteira de decisão a partir dos rótulos de género, medindo diretamente a separabilidade acústica das 20 classes.
 \end{itemize}
 
-O coeficiente de \textit{silhouette} entre 0.1619 e 0.1805 obtido no \textit{clustering} sugere uma separação modesta entre grupos, o que é coerente com uma exatidão de classificação de \textbf{68.44\%}: as \textit{features} acústicas contêm sinal discriminativo genuíno --- muito acima do acaso ($1/20 = 5\%$) --- mas a sobreposição natural entre géneros impede uma separação nítida. Por outras palavras, o \textit{clustering} encontra estrutura onde a classificação confirma que essa estrutura é informativa, mas não determinística.
+O coeficiente de \textit{silhouette} entre 0.1619 e 0.1805 obtido no \textit{clustering} sugere uma separação modesta entre grupos, o que é coerente com uma exatidão de classificação de \textbf{68.38\%} no ramo principal do \textit{workflow}: as \textit{features} acústicas contêm sinal discriminativo genuíno --- muito acima do acaso ($1/20 = 5\%$) --- mas a sobreposição natural entre géneros impede uma separação nítida. Por outras palavras, o \textit{clustering} encontra estrutura onde a classificação confirma que essa estrutura é informativa, mas não determinística.
 
 A projeção PCA bidimensional das previsões da \textit{Random Forest} (Figura~\ref{fig:class_pca} no Anexo~\ref{anx:imagens_spotify}), com os pontos coloridos segundo o género previsto, permite visualizar a sobreposição entre classes que explica simultaneamente a \textit{silhouette} modesta e a exatidão inferior a 100\%.
 
 \subsubsection{Regressão da popularidade}
 
 \textbf{Configuração.}
-O ramo de regressão foi substancialmente expandido face à versão anterior. Além dos 13 preditores originais (\code{release\_year}, \code{explicit}, as 10 \textit{features} de áudio, \code{mode} e \code{duration\_min}), o nó \code{One to Many (\#221)} codifica os 20 géneros musicais em colunas binárias (\textit{one-hot encoding}), totalizando \textbf{33 preditores}. Esta expansão é a concretização da hipótese de que o género musical transporta informação complementar às \textit{features} acústicas para explicar a variabilidade da popularidade.
+O ramo de regressão foi substancialmente expandido face à versão anterior. Além dos \textbf{12 preditores} originais efetivamente presentes no ramo principal (\code{release\_year}, \code{explicit} e as 10 \textit{features} de áudio, incluindo \code{duration\_min}), o nó \code{One to Many (\#221)} codifica os 20 géneros musicais em colunas binárias (\textit{one-hot encoding}), totalizando \textbf{32 preditores} úteis para os modelos. Esta expansão concretiza a hipótese de que o género musical transporta informação complementar às \textit{features} acústicas para explicar a variabilidade da popularidade.
 
-O nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa se $\text{popularity} \le 29$, Media se $\le 60$, Alta caso contrário) para estratificação da partição. A normalização Min-Max é aprendida no treino (79\,482 linhas) e aplicada ao teste (19\,871 linhas), sem fuga de informação. Foram treinados três modelos: regressão linear múltipla, árvore de regressão e \textit{Random Forest}, todos com os 33 preditores e target \code{popularity}.
+O nó \code{Expression (\#229)} cria a variável auxiliar \code{popularity\_class} (Baixa se $\text{popularity} \le 29$, Media se $\le 60$, Alta caso contrário) para estratificação da partição. A normalização Min-Max é aprendida no treino (80\,000 linhas) e aplicada ao teste (20\,000 linhas), sem fuga de informação. Foram treinados três modelos: regressão linear múltipla, árvore de regressão e \textit{Random Forest}, todos com 32 preditores e target \code{popularity}.
 
 \textbf{Regressão linear múltipla.}
-O modelo linear, treinado com \code{Linear Regression Learner (\#163)}, inclui constante e utiliza todos os preditores disponíveis. As previsões foram avaliadas com \code{Numeric Scorer (\#165)}. O diagnóstico visual incluiu um gráfico de dispersão de valores reais \textit{vs.} previstos e um histograma dos resíduos (Figuras~\ref{fig:linear_scatter} e~\ref{fig:linear_res} no Anexo~\ref{anx:imagens_spotify}).
+O modelo linear, treinado com \code{Linear Regression Learner (\#163)}, inclui constante e utiliza todos os preditores disponíveis. As previsões foram avaliadas com \code{Numeric Scorer (\#165)}; a organização do ramo pode ser observada na Figura~\ref{fig:ramo_reg} (Anexo~\ref{anx:imagens_spotify}).
 
 \textbf{Árvore de regressão.}
-Para a árvore de regressão, foram avaliadas várias configurações experimentais exportadas, refletindo diferentes níveis de poda/regularização. Entre as configurações testadas, a melhor foi a experiência \code{5\_40\_20}, que obteve o melhor compromisso entre erro médio e estabilidade. Esta etapa é metodologicamente importante porque, ao contrário da versão exploratória inicial da árvore, demonstra que a poda altera de forma material a generalização do modelo. Os diagnósticos encontram-se nas Figuras~\ref{fig:tree_scatter} e~\ref{fig:tree_res} (Anexo~\ref{anx:imagens_spotify}).
+Para a árvore de regressão, o \textit{workflow} contém um ramo principal com \code{Simple Regression Tree Learner (\#166)}; adicionalmente, foram avaliadas configurações exportadas com diferentes níveis de poda/regularização. Entre essas experiências, a melhor foi a configuração \code{5\_40\_20}, que obteve o melhor compromisso entre erro médio e estabilidade. Esta etapa é metodologicamente importante porque mostra que a poda altera de forma material a generalização do modelo, mesmo quando o ganho final permanece modesto.
 
 \textbf{\textit{Random Forest}.}
-O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learner (Regression) (\#172)}, utiliza 100 árvores, \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}). Os resultados exportados mostram que este modelo foi de facto executado e comparado com a regressão linear e com a árvore simples afinada. Os gráficos de diagnóstico encontram-se nas Figuras~\ref{fig:rf_scatter} e~\ref{fig:rf_res} do Anexo~\ref{anx:imagens_spotify}.
+O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learner (Regression) (\#172)}, utiliza 100 árvores, \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}). Os resultados exportados mostram que este modelo foi de facto executado e comparado com a regressão linear e com a árvore simples afinada.
 
 \subsection{Avaliação}
 
@@ -299,11 +297,11 @@ A análise dos centróides por \textit{feature} permite identificar perfis sonor
 
 \subsection{Leitura crítica da classificação de género}
 
-Os resultados atualmente disponíveis para classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. A família \textit{Random Forest} estabiliza em torno de 68\% de exatidão e Kappa em torno de 0.65, com o melhor resultado exportado a atingir \textbf{68.44\%} e \textbf{0.6571}. Este é um resultado expressivo quando comparado com a \textit{baseline} aleatória de 5\%, mas a própria estabilidade dos valores entre as melhores configurações também é informativa: o problema parece atingir rapidamente um teto de desempenho, sinal de que a limitação dominante está nos dados e não apenas no algoritmo.
+Os resultados atualmente disponíveis para classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. No ramo principal do \textit{workflow}, a \textit{Random Forest} atinge 68.38\% de exatidão e a MLP 68.15\%, ambas com Kappa em torno de 0.65. Este é um resultado expressivo quando comparado com a \textit{baseline} aleatória de 5\%, mas a própria proximidade entre os dois modelos já é informativa: a capacidade preditiva está menos limitada pela escolha do algoritmo e mais pela estrutura efetivamente disponível nas \textit{features}. Nas experiências suplementares exportadas, a melhor \textit{Random Forest} sobe apenas até \textbf{68.44\%}, reforçando a ideia de saturação.
 
 O estudo de sensibilidade da \textit{Random Forest} reforça esta leitura. As variantes menos expressivas apresentam degradação forte (por exemplo, 59.68\% em \code{gini\_6\_5\_100} e 63.50\% em \code{gini\_8\_5\_100}), mas a partir das configurações intermédias o desempenho converge para um patamar estreito: 68.16\% (\code{gini\_16\_5\_100}), 68.38\% (\code{gini\_20\_1\_100}), 68.36\% (\code{gini\_20\_1\_200}) e 68.44\% (\code{gini\_20\_1\_500}). A troca do critério Gini por \textit{Information Gain Ratio} não melhora o desempenho em configurações comparáveis (68.38\% vs.~68.20\% nos modelos de 100 árvores), o que indica que a fronteira de decisão é relativamente robusta à variação do critério de divisão.
 
-A leitura por classe mostra um comportamento muito desigual. A \textit{Random Forest} distingue quase perfeitamente géneros com assinatura acústica mais estável, como \textit{jazz} (\textit{recall} = 0.9900), \textit{classical} (0.9719), \textit{hip-hop} (0.9496) e \textit{ambient} (0.9487). Em contrapartida, classes como \textit{soul} (0.2799), \textit{k-pop} (0.4324), \textit{latin} (0.4356), \textit{r\&b} (0.4442) e \textit{gospel} (0.4539) revelam separação muito mais fraca. Esta assimetria é relevante: o modelo não falha de forma uniforme, mas sobretudo nos géneros mais híbridos ou estilisticamente próximos de outros grupos, sugerindo que a dificuldade do problema reside menos na complexidade do classificador e mais na sobreposição intrínseca entre classes no espaço acústico.
+A leitura por classe mostra um comportamento muito desigual. A \textit{Random Forest} do ramo principal distingue quase perfeitamente géneros com assinatura acústica mais estável, como \textit{jazz} (\textit{recall} = 0.9900), \textit{classical} (0.9732), \textit{hip-hop} (0.9508) e \textit{ambient} (0.9505). Em contrapartida, classes como \textit{soul} (0.2932), \textit{k-pop} (0.4224), \textit{r\&b} (0.4501), \textit{gospel} (0.4514) e \textit{latin} (0.4562) revelam separação muito mais fraca. Esta assimetria é relevante: o modelo não falha de forma uniforme, mas sobretudo nos géneros mais híbridos ou estilisticamente próximos de outros grupos, sugerindo que a dificuldade do problema reside menos na complexidade do classificador e mais na sobreposição intrínseca entre classes no espaço acústico.
 
 A projeção PCA das previsões (Figura~\ref{fig:class_pca}) confirma visualmente esta sobreposição: as diferentes classes formam manchas com contornos difusos, com algumas classes mais compactas e outras dispersas, refletindo a variabilidade intra-género das propriedades acústicas.
 
@@ -312,13 +310,13 @@ A projeção PCA das previsões (Figura~\ref{fig:class_pca}) confirma visualment
 A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permite uma triangulação metodológica rara, com conclusões convergentes:
 
 \begin{enumerate}
-    \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} positivo e estável entre 0.1619 e 0.1805). A classificação supervisionada recupera o género com 68.44\% de exatidão (muito acima dos 5\% do acaso). Isto demonstra que as \textit{features} acústicas do Spotify têm, de facto, poder discriminativo.
+    \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} positivo e estável entre 0.1619 e 0.1805). A classificação supervisionada recupera o género com 68.38\% de exatidão no ramo principal do \textit{workflow} (e até 68.44\% em experiências suplementares), muito acima dos 5\% do acaso. Isto demonstra que as \textit{features} acústicas do Spotify têm, de facto, poder discriminativo.
 
-    \item \textbf{A separação não é total}. A \textit{silhouette} modesta (0.0883 no método hierárquico; 0.1619--0.1805 no \textit{k-means}) é a contrapartida não supervisionada da exatidão de classificação de 68.44\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo, por mais flexível que seja, consegue eliminar.
+    \item \textbf{A separação não é total}. A \textit{silhouette} modesta (0.0883 no método hierárquico; 0.1619--0.1805 no \textit{k-means}) é a contrapartida não supervisionada da exatidão de classificação de cerca de 68.4\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo, por mais flexível que seja, consegue eliminar.
 
     \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} (Figura~\ref{fig:genero_cluster}) mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre uma técnica não supervisionada e outra supervisionada reforça a validade de ambas.
 
-    \item \textbf{Limite fundamental da representação acústica}. O facto de o melhor classificador atualmente documentado não ultrapassar 68.44\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta: a própria representação dos dados impõe um teto à separabilidade.
+    \item \textbf{Limite fundamental da representação acústica}. O facto de mesmo as melhores configurações testadas não ultrapassarem 68.44\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta: a própria representação dos dados impõe um teto à separabilidade.
 \end{enumerate}
 
 \subsection{Leitura crítica da regressão}
@@ -335,7 +333,7 @@ Globalmente, a regressão é a vertente onde o contraste entre \textit{clusterin
 
 A principal limitação é a natureza sintética do \textit{dataset} que, embora gerado com distribuições inspiradas em dados reais, não substitui plenamente um catálogo musical autêntico. As relações entre \textit{features} acústicas e popularidade podem ser artificialmente atenuadas ou amplificadas pelo processo de geração, e a distribuição dos géneros (uniforme, 20 géneros com igual representação) não reflete a realidade do mercado musical, onde géneros como \textit{pop} e \textit{hip-hop} dominam em volume de produção.
 
-Adicionalmente, os valores de \textit{silhouette} obtidos, embora coerentes entre os métodos hierárquico e \textit{k-means}, variam com a amostragem (0.0883 em 5\,000 registos vs.~0.1619--0.1805 em 20\,000), o que sugere que a estimativa da qualidade do agrupamento é sensível ao tamanho e à composição da amostra. As futuras métricas de regressão poderão ainda ser influenciadas pelas estratégias de imputação e de tratamento de \textit{outliers} adotadas na preparação.
+Adicionalmente, os valores de \textit{silhouette} obtidos, embora coerentes entre os métodos hierárquico e \textit{k-means}, variam com a amostragem (0.0883 em 2\,000 registos vs.~0.1619--0.1805 em 30\,000), o que sugere que a estimativa da qualidade do agrupamento é sensível ao tamanho e à composição da amostra. As métricas de regressão podem ainda ser influenciadas pelas estratégias de imputação e de tratamento de \textit{outliers} adotadas na preparação.
 
 Por fim, a arquitetura de três ramos paralelos (\textit{clustering}, classificação, regressão) sobre o mesmo \textit{dataset} introduz o risco de \textit{data leakage} conceptual se as conclusões de um ramo forem usadas para justificar decisões noutro ramo sem o devido cuidado metodológico. A separação estrita dos fluxos no KNIME mitiga este risco operacionalmente, mas a independência analítica deve ser mantida na interpretação.
 
@@ -539,8 +537,8 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{Histogram - Danceability.png}
-    \caption{\textit{Boxplots} e análise de dispersão inicial --- deteção de \textit{outliers}}
+    \includegraphics[width=0.95\textwidth]{Data Understanding (Screenshot).png}
+    \caption{Bloco de \textit{Data Understanding} no KNIME, incluindo histogramas, \textit{boxplots}, \textit{scatter plots} e contagens exploratórias}
     \label{fig:spotify_boxplots}
 \end{figure}
 
@@ -553,7 +551,7 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{dataplot.png}
+    \includegraphics[width=0.95\textwidth]{Data Preparation (Screenshot).png}
     \caption{Pipeline de preparação de dados no KNIME (Tarefa~1)}
     \label{fig:pipeline_spotify}
 \end{figure}
@@ -567,8 +565,12 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{Cluster_Features_2.svg}
-    \caption{Centróides dos \textit{clusters} por \textit{feature} ($k=5$, Cluster~2)}
+    \includegraphics[width=0.32\textwidth]{Cluster_Features_0.png}
+    \includegraphics[width=0.32\textwidth]{Cluster_Features_1.png}
+    \includegraphics[width=0.32\textwidth]{Cluster_Features_2.png}\\
+    \includegraphics[width=0.32\textwidth]{Cluster_Features_3.png}
+    \includegraphics[width=0.32\textwidth]{Cluster_Features_4.png}
+    \caption{Perfis dos cinco \textit{clusters} acústicos ($k=5$), exportados a partir do ramo de \textit{clustering}}
     \label{fig:centroides}
 \end{figure}
 
@@ -588,27 +590,6 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\textwidth]{4clusters.png}
-    \caption{\textit{Silhouette} para $k = 4$}
-    \label{fig:sil4}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\textwidth]{5clusters.png}
-    \caption{\textit{Silhouette} para $k = 5$}
-    \label{fig:sil5}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\textwidth]{6clusters.png}
-    \caption{\textit{Silhouette} para $k = 6$}
-    \label{fig:sil6}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
     \includegraphics[width=0.95\textwidth]{Heatmap - Genres_Prediction_Random_Forest.png}
     \caption{Matriz de confusão --- classificação de género via \textit{Random Forest} (20 classes)}
     \label{fig:class_heatmap}
@@ -623,72 +604,9 @@ Globalmente, o trabalho evidencia a importância de uma preparação de dados ri
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.95\textwidth]{regretion.png}
+    \includegraphics[width=0.95\textwidth]{Regression (Screenshot).png}
     \caption{Ramo de regressão no KNIME (Tarefa~1) --- com \textit{one-hot encoding} de género}
     \label{fig:ramo_reg}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{regressionlinear.png}
-    \caption{Regressão linear: valores reais \textit{vs.} previstos (33 preditores, inclui género)}
-    \label{fig:linear_scatter}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{regressionlinearh.png}
-    \caption{Regressão linear: distribuição dos resíduos}
-    \label{fig:linear_res}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.6\textwidth]{regressionlinearscorer.png}
-    \caption{Métricas da regressão linear ($R^2$, MAE, RMSE)}
-    \label{fig:linear_metricas}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{regressiontreeplot.png}
-    \caption{Árvore de regressão: valores reais \textit{vs.} previstos}
-    \label{fig:tree_scatter}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{regressiontreeh.png}
-    \caption{Árvore de regressão: distribuição dos resíduos}
-    \label{fig:tree_res}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.6\textwidth]{simpleregressionscorer.png}
-    \caption{Métricas da árvore de regressão ($R^2$, MAE, RMSE)}
-    \label{fig:tree_metricas}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{randonforestplot.png}
-    \caption{\textit{Random Forest}: valores reais \textit{vs.} previstos}
-    \label{fig:rf_scatter}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.9\textwidth]{randomforesth.png}
-    \caption{\textit{Random Forest}: distribuição dos resíduos}
-    \label{fig:rf_res}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.6\textwidth]{randomforestscorer.png}
-    \caption{Métricas da \textit{Random Forest} ($R^2$, MAE, RMSE)}
-    \label{fig:rf_metricas}
 \end{figure}
 
 \subsection*{A.2 --- Tabelas da Tarefa 1 (Spotify Tracks)}
