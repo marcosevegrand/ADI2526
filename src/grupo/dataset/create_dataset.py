@@ -281,6 +281,7 @@ for col, bounds in OUTLIER_COLS.items():
 # 4. Duplicate rows ────────────────────────────────────────────────────────────
 dup_source_idx = _err_rng.choice(df.index, size=DUPLICATE_N, replace=False)
 dup_rows = df.loc[dup_source_idx].copy()
+dup_rows["track_id"] = [rand_track_id() for _ in range(len(dup_rows))]
 df = pd.concat([df, dup_rows], ignore_index=True)
 
 new_start = len(df) - DUPLICATE_N
