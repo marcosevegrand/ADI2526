@@ -1,4 +1,4 @@
-RELATORIO_DIR := docs/relatorio
+RELATORIO_DIR := assets/relatorio
 RELATORIO_TEX := relatorio.tex
 LATEX ?= pdflatex
 LATEX_FLAGS := -interaction=nonstopmode -halt-on-error
