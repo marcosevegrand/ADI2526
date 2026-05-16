@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk 'NR>662 && /\\\\\\\\label\\\\{/' /home/francisco/ADI2526/docs/relatorio/relatorio.tex)",
+      "Bash(awk 'NR<662 && /\\\\\\\\ref\\\\{/' /home/francisco/ADI2526/docs/relatorio/relatorio.tex)",
+      "Bash(pdflatex --version)",
+      "Bash(make relatorio *)",
+      "Bash(pdftotext /home/francisco/ADI2526/docs/relatorio/relatorio.pdf -)"
+    ]
+  }
+}

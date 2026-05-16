@@ -448,7 +448,7 @@ A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permit
 \begin{enumerate}
     \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} positivo e estável entre 0.1619 e 0.1805). A classificação supervisionada recupera o género com 68.38\% de exatidão, muito acima dos 5\% do acaso. As \textit{features} acústicas têm, de facto, poder discriminativo.
 
-    \item \textbf{A separação não é total}. A \textit{silhouette} modesta é a contrapartida não supervisionada da exatidão de classificação de cerca de 68.4\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo consegue eliminar.
+    \item \textbf{A separação não é total}. A \textit{silhouette} modestTarefa 2a é a contrapartida não supervisionada da exatidão de classificação de cerca de 68.4\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo consegue eliminar.
 
     \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre técnica não supervisionada e supervisionada reforça a validade de ambas.
 
