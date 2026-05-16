@@ -187,7 +187,7 @@ As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pare
     \label{fig:spotify_corr}
 \end{figure}
 
-A deteção de duplicados foi realizada através do par \code{GroupBy} + \code{Row Filter}, que isolou 500 registos repetidos, confirmando a injeção de duplicados prevista pelo gerador.
+A deteção de duplicados foi delegada para a fase de preparação, onde o nó \code{Duplicate Row Filter} os remove. Na fase de compreensão, a presença de padrões suspeitos nas estatísticas (como valores idênticos repetidos em várias colunas) serviu apenas como indicador indireto da necessidade de uma limpeza posterior.
 
 Em síntese, esta fase demonstrou que o \textit{dataset} continha, de forma inequívoca, os quatro tipos de problemas que a preparação subsequente teria de resolver: \textit{missing values}, violações de domínio, \textit{outliers} e duplicados. A Tabela~\ref{tab:problemas_spotify} resume a evidência recolhida.
 
@@ -202,7 +202,7 @@ Em síntese, esta fase demonstrou que o \textit{dataset} continha, de forma ineq
 \textit{Missing values} & Cerca de 3\,000 missings por \textit{feature} acústica; p.ex. 3\,013 em \code{danceability}, 3\,021 em \code{speechiness}, 3\,026 em \code{tempo} & Imputação em \code{Missing Value}\\
 Valores fora de domínio & \code{danceability}, \code{energy} e \code{valence} com mínimos negativos e máximos acima de 1; \code{popularity} validada em $[0,100]$ & Sanitização em \code{Expression}\\
 Extremos artificiais & \code{tempo} até 419.95, \code{loudness} até -89.95 dB, \code{duration\_ms} com extremos fora do perfil central & Tratamento em \code{Numeric Outliers}\\
-Duplicados & \code{GroupBy} e \code{Row Filter} isolam exatamente 500 casos & Remoção em \code{Duplicate Row Filter}\\
+Duplicados & \code{Statistics} evidencia padrões repetidos; tratamento delegado para a preparação & Remoção em \code{Duplicate Row Filter}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -219,16 +219,7 @@ A primeira operação do pipeline é o nó \code{Duplicate Row Filter}, que comp
 
 \subsubsection{Sanitização e engenharia de atributos}
 
-O nó \code{Expression} concentra num único ponto oito transformações que, num \textit{workflow} menos compacto, estariam dispersas por múltiplos nós. As operações realizadas foram:
-
-\begin{itemize}
-    \item conversão de valores fora do domínio $[0,100]$ de \code{popularity} para \textit{missing};
-    \item conversão de violações do intervalo $[0,1]$ nas \textit{features} de áudio (\code{danceability}, \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness} e \code{valence}) para \textit{missing};
-    \item conversão de valores inválidos de \code{key}, \code{mode} e \code{time\_signature} para \textit{missing};
-    \item codificação binária da variável \code{explicit} ($\text{True} \rightarrow 1$, $\text{False} \rightarrow 0$);
-    \item criação do atributo derivado \code{duration\_min} (= \code{duration\_ms} / 60\,000), mais interpretável do que milissegundos;
-    \item criação da variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação da partição treino/teste.
-\end{itemize}
+O nó \code{Expression} concentra num único ponto treze transformações que, num \textit{workflow} menos compacto, estariam dispersas por múltiplos nós. Onze delas são validações de domínio que convertem valores fora dos limites esperados para \textit{missing} (popularity $[0,100]$; sete \textit{features} de áudio limitadas a $[0,1]$; \code{key} $[0,11]$; \code{mode} $\in\{0,1\}$; \code{time\_signature} $\in\{3,4,5,6,7\}$), uma é a codificação binária de \code{explicit} ($\text{True}\rightarrow 1$, $\text{False}\rightarrow 0$) e uma cria o atributo derivado \code{duration\_min} (= \code{duration\_ms} / 60\,000), mais interpretável do que milissegundos. Embora algumas destas \textit{features} nunca violem os respetivos domínios no \textit{dataset} original, as expressões foram aplicadas por precaução, garantindo robustez independentemente dos valores recebidos.
 
 Esta etapa é metodologicamente relevante porque, em vez de eliminar precocemente as linhas problemáticas, opta por converter violações de domínio em \textit{missing values}, delegando a decisão para o nó seguinte.
 
@@ -252,7 +243,7 @@ O fator IQR 3.0 foi preferido ao valor clássico 1.5 por duas razões. Primeiro,
 
 \subsubsection{Seleção de variáveis e separação de ramos}
 
-O nó \code{Column Filter} reduz o \textit{dataset} à base comum efetivamente usada pelos ramos de modelação, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), a coluna redundante \code{duration\_ms} (substituída por \code{duration\_min}) e os atributos \code{key}, \code{mode} e \code{time\_signature}. A coluna \code{genre} é preservada. O resultado executado apresenta \textbf{99\,353 linhas} e \textbf{15 colunas}, a partir das quais se abrem três ramos.
+O nó \code{Column Filter} reduz o \textit{dataset} à base comum efetivamente usada pelos ramos de modelação, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), a coluna redundante \code{duration\_ms} (substituída por \code{duration\_min}) e os atributos \code{key}, \code{mode} e \code{time\_signature}. Estas três últimas são variáveis discretas codificadas numericamente que não são usadas na modelação, porque os modelos principais operam sobre \textit{features} acústicas contínuas e a regressão já dispõe de contexto através de \code{genre} e \code{release\_year}. A coluna \code{genre} é preservada. O resultado executado apresenta \textbf{99\,353 linhas} e \textbf{14 colunas}, a partir das quais se abrem três ramos.
 
 Esta separação não é meramente organizacional; ela reflete necessidades analíticas distintas. O ramo de \textit{clustering} tem de operar sem rótulos para que os grupos emergentes sejam definidos apenas pela semelhança acústica. O ramo de classificação necessita de manter \code{genre} como variável a prever, mas deve excluir variáveis editoriais que poderiam enviesar a comparação com o \textit{clustering}. Já o ramo de regressão procura explicar \code{popularity} com o máximo de contexto útil, pelo que conserva \code{release\_year}, \code{explicit} e a codificação de \code{genre}. Desta forma, os três ramos partem da mesma preparação, mas cada um recebe exatamente a informação coerente com o seu objetivo.
 
@@ -261,10 +252,10 @@ Em termos operacionais, os três ramos ficam definidos do seguinte modo:
 \begin{itemize}
     \item \textbf{Ramo de \textit{clustering}}: reduzido a 10 \textit{features} acústicas normalizadas (Min-Max para $[0,1]$), excluindo \code{genre} e \code{popularity} para que a segmentação seja inteiramente não supervisionada;
     \item \textbf{Ramo de classificação}: um \code{Column Filter} isola 11 colunas --- as 10 \textit{features} acústicas mais \code{genre} --- e a \code{Table Partitioner} cria uma partição 80/20, estratificada por género e com \textit{seed}=1, partilhada entre a MLP e a \textit{Random Forest};
-    \item \textbf{Ramo de regressão}: o nó \code{One to Many} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo a tabela para 34 colunas totais, e a partição é feita a 80/20 estratificada por \code{popularity\_class}.
+    \item \textbf{Ramo de regressão}: o nó \code{One to Many} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo a tabela para 33 colunas totais. Neste ramo é também criada a variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação da partição 80/20, garantindo que treino e teste mantêm proporções equivalentes de popularidade.
 \end{itemize}
 
-Para suportar as visualizações bidimensionais, foi ainda calculado um PCA comum na fase de preparação, sempre sobre as mesmas \textit{features} musicais normalizadas. As coordenadas resultantes foram depois reutilizadas nos \textit{scatter plots} de \textit{clustering} e de classificação. Assim, os gráficos PCA são comparáveis entre si: a diferença visual entre eles não resulta de projeções diferentes, mas apenas da variável usada para colorir os pontos (\textit{cluster} ou género previsto).
+Para suportar as visualizações bidimensionais, foi ainda calculado um PCA comum na fase de preparação, sempre sobre as mesmas 10 \textit{features} acústicas normalizadas. As coordenadas resultantes foram depois reutilizadas nos \textit{scatter plots} de \textit{clustering} e de classificação. Assim, os gráficos PCA são comparáveis entre si: a diferença visual entre eles não resulta de projeções diferentes, mas apenas da variável usada para colorir os pontos (\textit{cluster} ou género previsto).
 
 \subsection{Modelação}
 
@@ -338,11 +329,11 @@ O ramo de classificação parte da base comum pós-preparação. O nó \code{Col
 
 Foram treinados dois modelos supervisionados:
 \begin{itemize}
-    \item \textbf{RProp MLP}: rede neuronal \textit{feedforward} com \textbf{duas camadas escondidas} de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 400 iterações (\textit{seed}=1). Usa a partição 80/20 estratificada por género (80\,000 exemplos de treino e 20\,000 de teste).
+    \item \textbf{RProp MLP}: rede neuronal \textit{feedforward} com \textbf{duas camadas escondidas} de 32 neurónios, treinada com o algoritmo \textit{RProp} durante 400 iterações (\textit{seed}=1). Usa a partição 80/20 estratificada por género (80\,000 exemplos de treino e 20\,000 de teste).
     \item \textbf{\textit{Random Forest}}: \textit{ensemble} de \textbf{100 árvores} de decisão, critério Gini, profundidade máxima 20, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. Usa a mesma partição 80/20 estratificada por género.
 \end{itemize}
 
-O uso de uma partição partilhada entre os dois classificadores torna a comparação direta metodologicamente mais limpa: MLP e \textit{Random Forest} são avaliadas sobre exatamente o mesmo conjunto de teste. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade em etapas, começando por árvores pequenas para perceber o efeito da profundidade, fixando depois configurações mais competitivas para testar tamanho mínimo de nó, critério de divisão e número de árvores. A MLP foi refinada de forma análoga: primeiro variou-se o número de iterações com uma arquitetura simples, depois o número de neurónios numa camada escondida e, por fim, uma arquitetura com duas camadas escondidas.
+O uso de uma partição partilhada entre os dois classificadores torna a comparação direta metodologicamente mais limpa: MLP e \textit{Random Forest} são avaliadas sobre exatamente o mesmo conjunto de teste. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade em etapas, começando por árvores pequenas para perceber o efeito da profundidade, fixando depois configurações mais competitivas para testar tamanho mínimo de nó, critério de divisão e número de árvores. A MLP foi refinada em três rondas: primeiro variou-se o número de neurónios numa única camada escondida (4, 8, 16, 32, 64) com 100 iterações; depois, fixado o melhor número de neurónios (32), variou-se o número de iterações (100, 200, 400, 1000); por fim, testou-se uma arquitetura com duas camadas escondidas (2$\times$32 neurónios, 400 iterações), que produziu o melhor resultado.
 
 \textbf{Resultados.}
 A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen. A Tabela~\ref{tab:metricas_class} sintetiza os resultados obtidos.
@@ -355,7 +346,7 @@ A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatid�
 \toprule
 \textbf{Modelo} & \textbf{Exatidão} & \textbf{Erro} & \textbf{Corretas} & \textbf{Kappa}\\
 \midrule
-RProp MLP (80/20, 400 iter, 2 hidden layers 30) & 0.6815 & 0.3185 & 13\,630 & 0.6542\\
+RProp MLP (80/20, 400 iter, 2 hidden layers 32) & 0.6877 & 0.3123 & 13\,753 & 0.6610\\
 \textit{Random Forest} (80/20, 100 árvores, Gini, prof. 20) & 0.6838 & 0.3162 & 13\,675 & 0.6564\\
 RF melhor config. (\code{gini\_20\_1\_500}) & 0.6844 & 0.3156 & 13\,688 & 0.6571\\
 \bottomrule
@@ -446,7 +437,7 @@ Os valores médios de \textit{silhouette} para \textit{k-means} foram 0.1802 par
 
 \subsection{Leitura crítica da classificação de género}
 
-Os resultados de classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. No ramo principal do \textit{workflow}, a \textit{Random Forest} atinge 68.38\% de exatidão e a MLP 68.15\%, ambas com Kappa em torno de 0.65. Este resultado é expressivo quando comparado com a \textit{baseline} aleatória de 5\% (1/20 géneros), mas a proximidade entre os dois modelos indica que a capacidade preditiva está menos limitada pela escolha do algoritmo e mais pela estrutura disponível nas \textit{features}. Nas experiências suplementares exportadas, a melhor \textit{Random Forest} sobe apenas até \textbf{68.44\%}, reforçando a ideia de saturação.
+Os resultados de classificação demonstram que as 10 \textit{features} acústicas contêm sinal discriminativo substancial para a previsão do género musical. No ramo principal do \textit{workflow}, a \textit{Random Forest} atinge 68.38\% de exatidão e a MLP 68.77\%, ambas com Kappa em torno de 0.66. Este resultado é expressivo quando comparado com a \textit{baseline} aleatória de 5\% (1/20 géneros). Nas experiências suplementares, a melhor \textit{Random Forest} atinge 68.44\% e a melhor MLP (2 hidden layers, 32 neurónios, 400 iterações) atinge 68.77\%, mostrando que a rede neuronal ligeiramente mais profunda conseguiu extrair um pouco mais de sinal das \textit{features} disponíveis.
 
 A leitura por classe mostra um comportamento muito desigual: géneros com assinatura acústica mais estável (jazz, classical, hip-hop) são classificados quase perfeitamente, enquanto géneros mais híbridos (soul, k-pop, r\&b) revelam separação muito mais fraca. Esta assimetria sugere que a dificuldade do problema reside menos na complexidade do classificador e mais na sobreposição intrínseca entre classes no espaço acústico.
 
@@ -461,7 +452,7 @@ A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permit
 
     \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre técnica não supervisionada e supervisionada reforça a validade de ambas.
 
-    \item \textbf{Limite fundamental da representação acústica}. O facto de mesmo as melhores configurações testadas não ultrapassarem 68.44\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta.
+    \item \textbf{Limite fundamental da representação acústica}. O facto de mesmo as melhores configurações testadas não ultrapassarem 68.77\% de exatidão estabelece um limite superior empírico para o que é possível extrair das 10 \textit{features} de áudio. Este limite explica por que razão o \textit{k-means} produz \textit{clusters} com \textit{silhouette} modesta.
 \end{enumerate}
 
 \subsection{Leitura crítica da regressão}
