@@ -16,6 +16,7 @@
 \usepackage{fancyhdr}
 \usepackage{booktabs}
 \usepackage{ragged2e}
+\usepackage{indentfirst}
 
 \geometry{margin=2.5cm}
 \renewcommand{\baselinestretch}{1.15}
@@ -161,7 +162,7 @@ A metodologia CRISP-DM (\textit{Cross-Industry Standard Process for Data Mining}
 
 \subsection{Compreensão dos dados}
 
-O workflow desta fase encontra-se documentado no Anexo, Figura~\ref{fig:workflow_data_und}, para não interromper a leitura da análise principal.
+O workflow desta fase encontra-se documentado no Anexo, Figura~\ref{fig:workflow_data_und}.
 
 O bloco de \textit{Data Understanding} do \textit{workflow} foi organizado para cobrir as dimensões essenciais da qualidade dos dados. A leitura inicial, através do nó \code{CSV Reader}, confirmou a importação de 100\,500 linhas e 21 colunas, com as \textit{features} de áudio corretamente interpretadas como numéricas.
 
@@ -209,7 +210,7 @@ Duplicados & \code{Statistics} evidencia padrões repetidos; tratamento delegado
 
 \subsection{Preparação dos dados}
 
-O workflow da preparação encontra-se no Anexo, Figura~\ref{fig:workflow_data_prep}. No corpo principal descrevem-se apenas as decisões metodológicas, para evitar páginas ocupadas por screenshots do KNIME.
+O workflow da preparação encontra-se no Anexo, Figura~\ref{fig:workflow_data_prep}.
 
 A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering}, classificação e regressão. Esta preparação comum garante que as três vertentes partem exatamente da mesma base limpa e comparável, divergindo apenas quando os objetivos analíticos passam a exigir conjuntos de atributos diferentes.
 
@@ -293,7 +294,7 @@ O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da
 \end{figure}
 
 \textbf{Interpretação.}
-A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} e \code{Cross Joiner}, obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} foi reintroduzida por junção com a tabela paralela preservada desde antes da remoção dessa coluna, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot}. A versão em barras empilhadas encontra-se no Anexo, Figura~\ref{fig:genero_cluster}; no corpo principal mantém-se apenas o \textit{heatmap}, por ser mais compacto e informativo.
+A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} e \code{Cross Joiner}, obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} foi reintroduzida por junção com a tabela paralela preservada desde antes da remoção dessa coluna, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot}. A versão em barras empilhadas encontra-se no Anexo, Figura~\ref{fig:genero_cluster}.
 
 \begin{figure}[H]
     \centering
@@ -314,7 +315,7 @@ A projeção PCA bidimensional dos pontos (Figura~\ref{fig:pca_clusters}) comple
 \begin{figure}[H]
     \centering
     \includegraphics[width=\plotwidth]{Scatter Plot - Clusters_PCA.png}
-    \caption{Projeção PCA dos pontos e centróides (duas primeiras componentes), coloridos por \textit{cluster}}
+    \caption{Projeção PCA dos pontos coloridos por \textit{cluster}}
     \label{fig:pca_clusters}
 \end{figure}
 
@@ -348,7 +349,6 @@ A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatid�
 \midrule
 RProp MLP (80/20, 400 iter, 2 hidden layers 32) & 0.6877 & 0.3123 & 13\,753 & 0.6610\\
 \textit{Random Forest} (80/20, 100 árvores, Gini, prof. 20) & 0.6838 & 0.3162 & 13\,675 & 0.6564\\
-RF melhor config. (\code{gini\_20\_1\_500}) & 0.6844 & 0.3156 & 13\,688 & 0.6571\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -379,7 +379,7 @@ A projeção PCA das previsões da RProp MLP confirma padrões semelhantes e, po
 \textbf{Estudo de sensibilidade da \textit{Random Forest}.}
 Foram testadas várias configurações adicionais de \textit{Random Forest}, variando o critério de divisão (Gini vs.\ \textit{Information Gain Ratio}), a profundidade máxima, o tamanho mínimo de nó e o número de árvores. A metodologia foi incremental: primeiro aumentou-se a profundidade com 100 árvores e tamanho mínimo 5; depois, mantendo profundidade elevada, testaram-se tamanhos mínimos menores; finalmente, com a melhor configuração estrutural, aumentou-se o número de árvores para verificar se a maior estabilidade do \textit{ensemble} melhorava a generalização. Os resultados mostram que a partir das configurações intermédias o desempenho converge para um patamar estreito: 68.16\% (\code{gini\_16\_5\_100}), 68.38\% (\code{gini\_20\_1\_100}), 68.36\% (\code{gini\_20\_1\_200}) e 68.44\% (\code{gini\_20\_1\_500}). A troca do critério Gini por \textit{Information Gain Ratio} não melhora o desempenho em configurações comparáveis (68.38\% vs.\ 68.20\%), indicando que a fronteira de decisão é relativamente robusta à variação do critério de divisão.
 
-A Tabela~\ref{tab:rf_sensibilidade}, no Anexo, resume as configurações mais representativas do estudo sem ocupar espaço no corpo principal.
+A Tabela~\ref{tab:rf_sensibilidade}, no Anexo, resume as configurações mais representativas do estudo.
 
 \subsubsection{Regressão da popularidade}
 
@@ -448,7 +448,7 @@ A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permit
 \begin{enumerate}
     \item \textbf{Ambas as abordagens encontram sinal}. O \textit{k-means} identifica 5 grupos acústicos não aleatórios (\textit{silhouette} positivo e estável entre 0.1619 e 0.1805). A classificação supervisionada recupera o género com 68.38\% de exatidão, muito acima dos 5\% do acaso. As \textit{features} acústicas têm, de facto, poder discriminativo.
 
-    \item \textbf{A separação não é total}. A \textit{silhouette} modestTarefa 2a é a contrapartida não supervisionada da exatidão de classificação de cerca de 68.4\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo consegue eliminar.
+    \item \textbf{A separação não é total}. A \textit{silhouette} modesta é a contrapartida não supervisionada da exatidão de classificação de cerca de 68.4\% --- ambas apontam para uma sobreposição intrínseca no espaço acústico que nenhum modelo consegue eliminar.
 
     \item \textbf{O \textit{clustering} descobre agrupamentos que a classificação valida}. A matriz \textit{cluster $\times$ género} mostra que géneros próximos no espaço acústico coabitam os mesmos \textit{clusters}, e a matriz de confusão da classificação revela que as trocas entre géneros seguem precisamente este mesmo padrão de afinidade acústica. Esta convergência entre técnica não supervisionada e supervisionada reforça a validade de ambas.
 
