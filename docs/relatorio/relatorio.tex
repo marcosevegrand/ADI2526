@@ -614,7 +614,24 @@ As tabelas completas de arquitetura e epochs do Keras encontram-se no Anexo, Tab
 
 Os resultados obtidos mostram que a estratégia One to Many é significativamente mais adequada para este problema de classificação multiclasse, atingindo desempenhos superiores de forma consistente em praticamente todas as arquiteturas testadas. Além disso, esta abordagem demonstrou maior estabilidade, apresentando melhorias mais graduais à medida que se aumentava a complexidade da rede.
 
-Por outro lado, a abordagem baseada na numeração da target, embora inicialmente apresente resultados bastante inferiores, revelou uma maior sensibilidade ao aumento da capacidade da rede e do número de epochs, registando melhorias mais acentuadas com arquiteturas mais profundas e mais tempo de treino. Este comportamento pode ser explicado pelo facto de esta estratégia exigir da rede uma aprendizagem mais precisa das relações entre os diferentes níveis de consumo. Por exemplo, uma determinada entrada pode ter Consumption MediumHigh (4) e a rede dar como output 3.4, que será arredondado para 3 (Medium), embora esteja muito perto do resultado correto. Isto fica ainda mais evidente se analisarmos a matriz de confusão dada pelo Scorer, correspondente à arquitetura de 4 layers (128, 64, 32, 16) com 5 epochs.
+Por outro lado, a abordagem baseada na numeração da target, embora inicialmente apresente resultados bastante inferiores, revelou uma maior sensibilidade ao aumento da capacidade da rede e do número de epochs, registando melhorias mais acentuadas com arquiteturas mais profundas e mais tempo de treino. Este comportamento pode ser explicado pelo facto de esta estratégia exigir da rede uma aprendizagem mais precisa das relações entre os diferentes níveis de consumo. Por exemplo, uma determinada entrada pode ter Consumption MediumHigh (4) e a rede dar como output 3.4, que será arredondado para 3 (Medium), embora esteja muito perto do resultado correto. Isto fica ainda mais evidente se analisarmos a matriz de confusão dada pelo Scorer, correspondente à arquitetura de 4 layers (128, 64, 32, 16) com 5 epochs:
+
+\begin{table}[H]
+\centering
+\caption{Keras --- Matriz de confusão (Numerar, 4 layers 128|64|32|16, 5 epochs)}
+\label{tab:keras_conf_matrix}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Real $\backslash$ Previsão} & \textbf{Low} & \textbf{MediumLow} & \textbf{Medium} & \textbf{MediumHigh} & \textbf{High} \\
+\midrule
+Low        & 509 &   0 &  49 &   0 &  19 \\
+MediumLow  &  81 & 148 & 155 &  15 &  16 \\
+Medium     &  35 & 224 & 331 & 260 &  49 \\
+MediumHigh &   8 & 124 &  85 & 345 &  87 \\
+High       &   0 &   7 &   0 &   6 &  67 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 O efeito referido é mais acentuado para Medium, onde a rede apresenta dificuldades em determinar a ``fronteira'' entre os diversos níveis médios de consumo.
 De forma geral, os resultados evidenciam também que as redes neuronais desenvolvidas com Keras oferecem um grau de flexibilidade e configurabilidade substancialmente superior ao dos modelos anteriormente analisados, tornando a escolha da arquitetura, do método de representação dos dados e dos hiperparâmetros fatores decisivos para o desempenho final do modelo. Embora existisse margem para explorar arquiteturas mais complexas e processos de treino mais prolongados, essa exploração tornou-se limitada pelo elevado custo computacional associado ao treino destas redes.
