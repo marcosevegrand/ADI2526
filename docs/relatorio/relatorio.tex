@@ -478,19 +478,7 @@ Adicionalmente, os valores de \textit{silhouette} variam com a amostragem (0.088
 
 \section{Definição da metodologia}
 
-A metodologia de análise de dados utilizada neste problema é a \textbf{SEMMA}: \textit{Sample}, \textit{Explore}, \textit{Modify}, \textit{Model} e \textit{Assess}. A fase de \textit{Sample} encontra-se já concretizada na forma do dataset atribuído, pelo que o presente relatório se foca nas fases seguintes. Assim, começou-se por realizar a fase de \textit{Explore} (Exploração), cujo objetivo é perceber potenciais tendências e problemas com os dados, para na fase de \textit{Modify} (Modificação) se fazerem transformações que visam corrigir os problemas identificados. Por fim, aplicam-se as fases de \textit{Model} (Modelação) e \textit{Assess} (Avaliação) para cada um dos 5 modelos desenvolvidos.
-
-\subsection{Domínio e dataset}
-
-O dataset atribuído contém registos sobre consumo energético em diferentes instalações, enriquecidos com variáveis meteorológicas (temperatura, humidade, precipitação, velocidade do vento, radiação solar, entre outras) e temporais. O objetivo é classificar o nível de consumo energético (\code{Consumptions}) em 5 categorias ordenadas: \textit{Low}, \textit{MediumLow}, \textit{Medium}, \textit{MediumHigh} e \textit{High}.
-
-O dataset apresenta cerca de \textbf{8\,700 registos} no total, com múltiplas features numéricas e algumas categóricas, e foi distribuído com os problemas de qualidade que a metodologia SEMMA prevê tratar nas fases de exploração e modificação.
-
-\subsection{Visão geral do workflow desenvolvido no KNIME}
-
-O screenshot geral do workflow encontra-se no Anexo, Figura~\ref{fig:workflow_geral}. No corpo principal mantém-se apenas a descrição da organização, para evitar ocupar páginas com imagens estruturais.
-
-De forma geral, o workflow está organizado num conjunto de metanodes que encapsulam os diferentes passos da metodologia SEMMA. O nó \code{String to Number}, que converte features numéricas que aparecem no dataset em formato string, encontra-se fora de qualquer metanode de forma a propagar os missing values nessas features para a Exploração e para a Modificação simultaneamente. No final, cada um dos 5 modelos recebe o output das transformações dos dados, sendo a Avaliação feita dentro de cada metanode.
+A metodologia de análise de dados que será utilizada neste problema é a \textbf{SEMMA}: \textit{Sample}, \textit{Explore}, \textit{Modify}, \textit{Model} e \textit{Assess}. A fase de \textit{Sample} encontra-se já concretizada na forma do dataset atribuído, pelo que o presente relatório se foca nas fases seguintes. Assim, começou-se por realizar a fase de Explore ou Exploração, cujo objetivo é perceber potenciais tendências e problemas com os dados, para na fase de Modificação se fazerem transformações que visam corrigir os problemas identificados na fase de Exploração. Por fim, aplicam-se as fases de Modelação e Avaliação para cada um dos 5 modelos desenvolvidos para este problema.
 
 \section{Exploração}
 
@@ -501,7 +489,8 @@ O primeiro passo da exploração dos dados foi a utilização do nó \code{Stati
 \begin{itemize}
     \item \code{Precipitation} e \code{rain} apresentam muitos missing values ($\sim$90\%);
     \item \code{Snowfall} tem todos os valores a 0 (mean = min = max = 0);
-    \item Todas as restantes features apresentam uma quantidade semelhante de missing values, cerca de 10\%. Por isso, deixa de ser viável remover as entradas com missing values, uma vez que, feito isso, o dataset final fica com $\approx$1\,300 entradas (apenas 15\% do total). Portanto, foram avaliadas, para cada modelo, diferentes abordagens para imputar os missing values (média e mediana para os numéricos e moda ou valor fixo ``Missing'' para as strings).
+    \item \code{RowID} é redundante;
+    \item Todas as restantes features apresentam uma quantidade semelhante de missing values, cerca de 10\%.
 \end{itemize}
 
 De seguida, foi verificada a presença de outliers, recorrendo tanto a \code{Numeric Outliers} para obter resultados numéricos como ao \code{Box Plot} para fazer uma exploração mais visual. Desta análise, retirou-se que várias features (como as do vento e as da voltagem) apresentam outliers em quantidade reduzida ($<$2,5\%) e a \code{surface\_pressure} ligeiramente mais ($\sim$5\%). No total, são 1\,700 as entradas com algum outlier, pelo que a sua remoção não foi considerada, pois perder-se-ia uma boa parte do dataset (cerca de 20\%). Portanto, na avaliação dos modelos, os outliers foram ou mantidos ou ajustados para o valor permitido mais próximo, de maneira a avaliar qual o melhor tratamento para cada modelo.
@@ -514,14 +503,17 @@ O metanode de Transformação está documentado no Anexo, Figura~\ref{fig:transf
 
 As primeiras transformações aplicadas aos dados centraram-se nos formatos das features, incluindo a conversão das colunas numéricas que se encontravam em string (\code{Medium Voltage} e \code{Total}), que foi realizada fora deste metanode, conforme descrito anteriormente, e a passagem das datas de string para um formato adequado, além da consequente extração dos campos mais relevantes para este problema (hora, dia da semana e mês). A feature original com a data completa foi removida para evitar introduzir ruído. Ainda, foram detectadas 4 linhas nas quais a data era inválida (e.g., 2025-11-32), pelo que essas entradas foram removidas, por ser uma quantidade muito reduzida.
 
-De seguida, no seguimento da exploração realizada, foram removidas algumas features:
+De seguida, no seguimento da exploração realizada, foram removidas algumas features, sendo elas:
 
 \begin{itemize}
+    \item \code{RowID} (redundante);
     \item \code{precipitation} e \code{rain} ($\sim$90\% missing values);
     \item \code{snowfall} (redundante, mean = min = max = 0).
 \end{itemize}
 
-Por fim, de acordo com o que foi possível perceber na exploração, foi aplicada uma \code{Rule Engine} para uniformizar o formato dos valores de \code{Consumptions}, resultando daqui 5 valores possíveis: \textit{Low}, \textit{MediumLow}, \textit{Medium}, \textit{MediumHigh} e \textit{High}.
+Para resolver as inconsistências na target detetadas na fase de exploração, foi aplicada uma \code{Rule Engine} para uniformizar o formato dos valores de \code{Consumptions}, resultando daqui 5 valores possíveis (Low, MediumLow, Medium, MediumHigh, High).
+
+Por fim, concluiu-se não ser viável remover as entradas com missing values, uma vez que, feito isso, o dataset final fica com 1300 linhas (apenas 15\% do total). Portanto, foram avaliadas, para cada modelo, diferentes abordagens para imputar os missing values: média e mediana para os numéricos e moda ou valor fixo ``Missing'' para as strings. Neste último caso, considerou-se a utilização deste valor fixo porque, desta forma, não se introduzem tendências sintéticas (como com a utilização da moda). Além disso, um missing value pode não ser necessariamente algum erro na recolha dos resultados, podendo ser indicativo do resultado esperado na target.
 
 % =========================================================
 \section{Modelação e Avaliação}
@@ -532,14 +524,14 @@ Por fim, de acordo com o que foi possível perceber na exploração, foi aplicad
 \begin{enumerate}
     \item A partição dos dados para treino e teste foi feita, sempre que possível, com recurso aos nós \code{X-Partitioner} e \code{X-Aggregator}, uma vez que o uso de cross-validation, embora mais custoso a nível computacional, permite aproveitar a totalidade do dataset e reduzir as chances do modelo sofrer de overfitting;
     \item Os nodos de cross-validation foram configurados com uma random seed, de modo a ser possível obter resultados reproduzíveis e sem variabilidade aleatória;
-    \item Não foram testadas todas as combinações possíveis de transformações de features e configurações dos modelos, pois é uma quantidade impraticável. Por isso, a abordagem adotada foi sequencial: primeiro testar estratégias de pré-processamento, fixar a melhor combinação, e só depois variar hiperparâmetros estruturais do modelo. Isto pode fazer com que não sejam detectadas as melhores combinações globais para cada modelo, mas torna o processo de refinamento exequível e permite perceber melhor o efeito de cada grupo de decisões.
+    \item Não foram testadas todas as combinações possíveis de transformações de features e configurações dos modelos, pois é uma quantidade impraticável. Por isso, a abordagem adotada foi: testar um conjunto de abordagens e as suas combinações; tirar daí o melhor resultado; realizar o próximo conjunto de testes com a combinação obtida anteriormente. Isto pode fazer com que não sejam detectadas as melhores combinações para cada modelo, mas torna este processo de refinamento mais exequível.
 \end{enumerate}
 
 \subsection{Decision Tree}
 
 O metanode da Decision Tree encontra-se no Anexo, Figura~\ref{fig:decision_tree}.
 
-Tal como mencionado na fase de exploração, os tratamentos de missing values testados foram média e mediana para os valores numéricos e, para os categóricos, moda e valor fixo ``Missing''. Já os outliers, tal como dito anteriormente, foram mantidos ou ajustados para o valor permitido mais próximo. A metodologia de refinamento da Decision Tree começou por esta comparação de pré-processamento; depois, mantendo a melhor família de transformações, foram avaliados os hiperparâmetros que controlam a estrutura da árvore: métrica de divisão, método de pruning e mínimo de registos por nó.
+Tal como mencionado na fase de exploração, os tratamentos de missing values testados foram média e mediana para os valores numéricos e, para os categóricos, moda e valor fixo ``Missing''. Já os outliers, tal como dito anteriormente, foram mantidos ou ajustados para o valor permitido mais próximo.
 
 As tabelas completas deste estudo encontram-se no Anexo, Tabelas~\ref{tab:dt_preprocessamento} e~\ref{tab:dt_hiperparametros}.
 
@@ -549,25 +541,26 @@ Os resultados obtidos mostram que o tratamento de missing values e outliers teve
 
 O metanode da Random Forest encontra-se no Anexo, Figura~\ref{fig:random_forest}.
 
-Aqui foram testadas as mesmas combinações de tratamento de missing values e outliers que na Decision Tree. A metodologia de refinamento foi semelhante, mas adaptada ao funcionamento da Random Forest: primeiro avaliou-se o impacto do pré-processamento com 100 modelos, depois variaram-se os hiperparâmetros internos das árvores (critério de divisão, limite de profundidade e tamanho mínimo do nó filho), e por fim variou-se o número de modelos para verificar se aumentar o ensemble trazia ganhos de estabilidade.
+Aqui foram testadas as mesmas combinações de tratamento de missing values e outliers que na Decision Tree.
 
 As tabelas completas da Random Forest encontram-se no Anexo, Tabelas~\ref{tab:rf_attr_preprocessamento}, \ref{tab:rf_attr_hiperparametros} e~\ref{tab:rf_attr_num_modelos}.
 
-Tal como observado na Decision Tree, as diferentes estratégias de tratamento de missing values e outliers tiveram impacto praticamente nulo no desempenho da Random Forest. Relativamente aos hiperparâmetros, verificou-se que limitar o número de níveis das árvores provocou uma redução consistente do desempenho. Isto sugere que este problema beneficia de árvores mais profundas, capazes de capturar relações mais complexas entre as features. Também o aumento do parâmetro \textit{Minimum child node size} levou a pequenas perdas de desempenho. Os diferentes critérios de divisão testados apresentaram desempenhos muito semelhantes, embora o Information Gain Ratio tenha obtido, de forma consistente, os melhores resultados. Finalmente, a avaliação do número de modelos mostrou que aumentar o número de árvores acima de 100 não produziu melhorias relevantes, indicando que a Random Forest atinge rapidamente estabilidade neste problema. O \textbf{melhor desempenho} foi obtido com Information Gain Ratio, sem limitar profundidade, sem minimum child node size e com 100 modelos, atingindo uma accuracy de \textbf{0.930} e Cohen's Kappa de \textbf{0.910}.
+Tal como observado na Decision Tree, as diferentes estratégias de tratamento de missing values e outliers tiveram impacto praticamente nulo no desempenho da Random Forest. Relativamente aos hiperparâmetros da Random Forest, verificou-se que limitar o número de níveis das árvores provocou uma redução consistente do desempenho. Isto sugere que este problema beneficia de árvores mais profundas, capazes de capturar relações mais complexas entre as features. Também o aumento do parâmetro \textit{Minimum child node size} levou a pequenas perdas de desempenho. Os diferentes critérios de divisão testados (Information Gain Ratio, Information Gain e Gini) apresentaram desempenhos muito semelhantes, embora o Information Gain Ratio tenha obtido, de forma consistente, os melhores resultados. Finalmente, a avaliação do número de modelos mostrou que aumentar o número de árvores acima de 100 não produziu melhorias relevantes. Isto indica que a Random Forest atinge rapidamente estabilidade neste problema, sendo que ensembles maiores apenas aumentam o custo computacional sem ganhos significativos de desempenho.
 
 \subsection{Gradient Boosted Trees}
 
 O metanode do Gradient Boosted Trees encontra-se no Anexo, Figura~\ref{fig:gbt}.
 
-Ao contrário do que foi feito até agora, não foram avaliadas as estratégias de imputação de missing values, uma vez que este modelo dispõe de mecanismos internos para lidar com este problema. Sendo assim, foram testados estes métodos juntamente com o tratamento de outliers com as configurações padrão, antes de começar a variar os hiperparâmetros. A afinação do Gradient Boosted Trees foi feita em dois momentos: primeiro escolheu-se a forma de lidar com missing values e outliers; depois variou-se conjuntamente a learning rate e o número de modelos, mantendo a lógica de que uma learning rate menor exige mais árvores para acumular o mesmo efeito preditivo. Em paralelo, testou-se a profundidade das árvores e o row sampling, por serem parâmetros diretamente ligados à capacidade de generalização.
+Ao contrário do que foi feito até agora, não foram avaliadas as estratégias de imputação de missing values, uma vez que este modelo dispõe de mecanismos para lidar com este problema. Sendo assim, foram testados estes métodos juntamente com o tratamento de outliers com as configurações padrão, antes de começar a variar os hiperparâmetros.
 
 O detalhe da avaliação inicial de missing values e outliers está no Anexo, Tabela~\ref{tab:gbt_missing_outliers}.
 
-É possível verificar que a configuração com ajuste de outliers tem um resultado igual a não tratar outliers (usando em ambos os casos XGBoost), pelo que se optou por utilizar a abordagem sem ajuste, por não introduzir dados artificiais. Na avaliação que se segue, a variação do learning rate foi feita em conjunto com o número de modelos, ou seja, diminuindo a learning rate, aumenta-se o número de modelos. Isto foi feito porque, ao diminuir a learning rate, cada árvore individual contribui menos para o resultado final, pelo que é necessário aumentar o total de árvores para compensar.
+É possível verificar que a configuração com ajuste de outliers tem um resultado igual a não tratar outliers (usando em ambos os casos XGBoost), pelo que se optou por utilizar esta última abordagem, por não introduzir dados artificiais.
+Na avaliação que se segue, a variação do learning rate foi feita em conjunto com o número de modelos, ou seja, diminuindo a learning rate, aumenta-se o número de modelos. Isto foi feito porque, ao diminuir a learning rate, cada árvore individual contribui menos para o resultado final, pelo que é necessário aumentar o total de árvores para compensar.
 
 As configurações completas de hiperparâmetros estão no Anexo, Tabela~\ref{tab:gbt_hiperparametros}.
 
-Os resultados mostram que diferentes combinações de learning rate e número de modelos conduzem praticamente ao mesmo desempenho máximo (accuracy = \textbf{0.932} e Cohen's Kappa = \textbf{0.913}), sugerindo que, para este problema, o aumento do número de modelos juntamente com a redução da learning rate não produzem ganhos relevantes. Em contrapartida, observou-se que configurações com maior profundidade das árvores (limit levels = 8) e com row sampling ativo tendem a apresentar desempenhos ligeiramente superiores, indicando que estes parâmetros têm maior influência no resultado final do que a combinação learning rate / número de modelos.
+Os resultados mostram que diferentes combinações de learning rate e número de modelos conduzem praticamente ao mesmo desempenho máximo (accuracy = 0.932 e Cohen's kappa = 0.913), sugerindo que, para este problema, o aumento do número de modelos juntamente com a redução da learning rate não produzem ganhos relevantes. Em contrapartida, observou-se que configurações com maior profundidade das árvores e com row sampling ativo tendem a apresentar desempenhos ligeiramente superiores, indicando que estes parâmetros têm maior influência no resultado final do que a combinação learning rate / número de modelos.
 
 \subsection{Multilayer Perceptron}
 
@@ -584,17 +577,15 @@ A outra transformação essencial tem a ver com as features categóricas nominai
 
 Um detalhe importante, que difere consoante qual das duas abordagens é utilizada, é quando se faz a normalização. No caso da numeração, a normalização é feita depois, de modo a englobar os novos valores criados. Assim, evita-se que a feature fique com uma escala diferente das restantes. Já no caso de se usar o One to Many, a normalização é feita antes, pois os valores já estão numa escala consistente (0 ou 1) e assim não se destrói a interpretação binária, que é precisamente o objetivo desta abordagem.
 
-Considerando tudo isto, começou-se por avaliar todas as combinações destas configurações. O único método de normalização não avaliado com a mesma profundidade que os outros dois foi o Decimal Scaling, porque fez o modelo obter uma accuracy de $\sim$60\% com algumas combinações variadas dos restantes parâmetros em avaliação. Assim, foi possível reduzir ligeiramente o espaço de procura (48 para 32 combinações). Só depois de escolhida a melhor combinação de normalização, encoding, outliers e missing values é que se avançou para a afinação da arquitetura da rede, variando iterações, número de hidden layers e neurónios por camada.
+Considerando tudo isto, começou-se por avaliar todas as combinações destas configurações, uma vez que estas são dependentes umas das outras. Por exemplo, os melhores tratamentos de missing values e outliers com Z-score podem ser os piores para Min-max, e portanto a avaliação não estaria correta. O único método de normalização não avaliado com a mesma profundidade que os outros dois foi o Decimal Scaling, porque fez o modelo obter uma accuracy de $\sim$60\% com algumas combinações variadas dos restantes parâmetros em avaliação. Assim, foi possível reduzir ligeiramente o espaço de procura (48 para 32 combinações).
 
 O detalhe completo das combinações de pré-processamento avaliadas no MLP encontra-se no Anexo, Tabela~\ref{tab:mlp_preprocessamento}.
-
-A melhor combinação encontrada foi: normalização Z-score, One to Many para as variáveis categóricas, ajuste de outliers, mediana para missing values numéricos e moda para missing values categóricos. Com esta combinação, procedeu-se à avaliação dos hiperparâmetros da rede.
 
 O detalhe da variação da arquitetura está no Anexo, Tabela~\ref{tab:mlp_arquitetura}.
 
 Os resultados obtidos mostram que o desempenho do Multilayer Perceptron depende mais das transformações aplicadas aos dados do que os modelos anteriores, com ênfase para a normalização e a representação das variáveis categóricas. Dentre os métodos testados, a normalização Z-score apresentou consistentemente melhores resultados do que Min-max e Decimal Scaling. Relativamente às variáveis categóricas, a abordagem One to Many revelou-se superior à simples numeração das categorias neste problema.
 
-Quanto à arquitetura da rede, verificou-se que aumentar o número de iterações melhorou consistentemente os resultados, indicando que o modelo beneficiou de mais tempo de treino. No entanto, o aumento do número de hidden layers e neurónios nem sempre conduziu a melhorias. Neste problema, os resultados sugerem que arquiteturas relativamente simples já conseguem capturar os padrões mais relevantes presentes no dataset. Assim, o aumento da profundidade e do número de neurónios introduziu maior complexidade de otimização sem acrescentar capacidade útil de generalização em relação aos dados de treino, levando em vários casos a uma degradação do desempenho no conjunto de teste. O \textbf{melhor resultado} foi obtido com 300 iterações, 1 hidden layer e 10 neurónios, atingindo uma accuracy de \textbf{0.903} e Cohen's Kappa de \textbf{0.875}.
+Quanto à arquitetura da rede, verificou-se que aumentar o número de iterações melhorou consistentemente os resultados, indicando que o modelo beneficiou de mais tempo de treino. No entanto, o aumento do número de hidden layers e neurónios nem sempre conduziu a melhorias. Neste problema, os resultados sugerem que arquiteturas relativamente simples já conseguem capturar os padrões mais relevantes presentes no dataset. Assim, o aumento da profundidade e do número de neurónios introduziu maior complexidade de otimização sem acrescentar capacidade útil de generalização em relação aos dados de treino, levando em vários casos a uma degradação do desempenho no conjunto de teste.
 
 \subsection{Keras}
 
@@ -602,22 +593,31 @@ O metanode do Keras encontra-se no Anexo, Figura~\ref{fig:keras}.
 
 O último modelo avaliado foi mais uma rede neuronal, desta vez usando a biblioteca Keras, que possibilita explorar arquiteturas mais flexíveis e diferentes métodos de otimização. Portanto, as transformações dos dados avaliadas para o MLP não foram reavaliadas, tendo-se optado por manter a melhor combinação encontrada (normalização Z-score, One to Many para as features categóricas, ajuste de outliers, mediana para os missing values numéricos e moda para os missing values categóricos). Portanto, agora o foco passa a ser a definição da arquitetura da rede e do processo de treino.
 
-Antes de prosseguir para a arquitetura da rede, é necessário efetuar algumas transformações nos dados para ser possível aplicar a rede ao problema de classificação. Em particular, é preciso transformar a target \code{Consumptions}, pois ao contrário do RProp MLP, estas redes neuronais só recebem e devolvem valores numéricos como resultado. Desta forma, foram testadas duas formas de fazer esta transformação:
+Antes de prosseguir para a arquitetura da rede, é necessário efetuar algumas transformações nos dados para ser possível aplicar a rede ao problema de classificação. Em particular, é preciso transformar a target \code{Consumptions}, pois ao contrário do RProp MLP, estas redes neuronais só recebem e devolvem valores numéricos como resultado. Desta forma, à semelhança do que aconteceu com o modelo anterior, foram testadas duas formas de fazer esta transformação:
 
 \begin{itemize}
     \item \textbf{One to Many:} cria-se uma coluna para cada possível valor da feature original, ou seja, cria-se um conjunto de booleanos. Para o output da rede, usam-se 5 neurónios, obtendo-se 5 valores de 0 a 1 que somam 1, ou seja, probabilidades. Depois é só escolher o maior para se fazer a previsão daquela entrada. Embora este formato de 0s ou 1s já seja aceite pela rede, a noção lógica destes valores é perdida, pelo que esta poderá não ser a melhor abordagem;
-    \item \textbf{numerar:} numerar de 1 a 5 os possíveis valores de \code{Consumptions}. Este tratamento é adequado porque os valores da target já têm uma ordem própria (Low $<$ MediumLow $<$ Medium $<$ MediumHigh $<$ High), pelo que o significado da numeração continua a fazer sentido para a rede. Aqui, a camada de output passa a ter apenas 1 neurónio. O valor gerado pela rede é limitado ao intervalo válido e depois arredondado (e.g., 6.1 $\Rightarrow$ 5 e 0.2 $\Rightarrow$ 1), sendo por fim feita a conversão inversa para o valor em string correspondente.
+    \item \textbf{numerar:} numerar de 1 a 5 os possíveis valores de \code{Consumptions}. Este tratamento é adequado porque os valores da target já têm uma ordem própria (Low $<$ MediumLow $<$ Medium $<$ MediumHigh $<$ High), pelo que o significado da numeração continua a fazer sentido para a rede, ao contrário dos booleanos criados com o método anterior. Aqui, a camada de output passa a ter apenas 1 neurónio. O valor gerado pela rede é limitado ao intervalo válido e depois arredondado (e.g., 6.1 $\Rightarrow$ 5 e 0.2 $\Rightarrow$ 1), sendo por fim feita a conversão inversa para o valor em string correspondente.
 \end{itemize}
 
-Como configuração inicial, usou-se uma hidden layer com 16 neurónios e função de ativação ReLU (tal como em todas as futuras hidden layers adicionadas). No caso do One to Many, a loss function usada é a Categorical Cross Entropy com função de ativação Softmax. No caso da numeração, a loss function é a Mean Absolute Error com função de ativação Linear. O otimizador utilizado em ambas as situações foi o Adam, com os parâmetros padrão. O uso de cross-validation tornou-se computacionalmente inviável com este modelo, pelo que foi usado um Table Partitioner, fazendo uma partição de 70/30 com uma random seed fixa. A metodologia de refinamento começou pela comparação das duas representações da target com poucas epochs, passou depois para arquiteturas progressivamente mais largas e profundas, e só no final aumentou o número de epochs para as melhores arquiteturas de cada representação.
+A abordagem baseada na numeração da target pode ser interpretada como uma aproximação híbrida entre classificação e regressão. Em vez de prever diretamente uma classe discreta através de probabilidades independentes, a rede aprende a estimar um valor numérico contínuo associado ao nível de consumo. Desta forma, o modelo passa também a captar a proximidade ordinal entre as classes (por exemplo, errar de \textit{MediumHigh} para \textit{Medium} é menos grave do que errar para \textit{Low}), algo que não acontece naturalmente numa abordagem puramente categórica. No entanto, esta representação exige maior precisão na previsão dos valores numéricos, uma vez que pequenas diferenças no output podem conduzir, após o arredondamento, a classes incorretas.
+
+Como configuração inicial, usou-se uma hidden layer com 16 neurónios e função de ativação ReLU (tal como em todas as futuras hidden layers adicionadas), além da camada de output com 1 ou 5 neurónios, conforme a transformação aplicada à target. Quanto às configurações desta última, no caso do One to Many, a loss function usada é a Categorical Cross Entropy, juntamente com a função de ativação Softmax, que transforma o output nas probabilidades mencionadas anteriormente. Já no caso de se utilizar a numeração, a loss function usada é a Mean Absolute Error e a função de ativação é a Linear, pois não se devem fazer modificações ao output da rede, de maneira a ser possível arredondar o valor produzido. Por fim, o otimizador utilizado em ambas as situações foi o Adam, com os parâmetros padrão.
+
+Depois da configuração inicial, foram testadas outras arquiteturas com mais hidden layers e também neurónios, mantendo o ``afunilamento'', ou seja, reduzindo o número de neurónios em cada layer até chegar ao output. Foram utilizados números de neurónios múltiplos de 2 por conveniência experimental e alinhamento com práticas comuns de implementação.
+
+Após ser determinada a melhor arquitetura da rede e método de conversão da target, foram experimentados diferentes números de epochs, valor que se fixou inicialmente em 5 como compromisso entre capacidade de aprendizagem e custo computacional.
+
+\textit{Nota:} o uso de cross-validation tornou-se computacionalmente inviável com este modelo, cuja duração do treino se começa a tornar excessivamente longa numa máquina casual, especialmente com mais hidden layers e neurónios. Por isso, foi usado um Table Partitioner, fazendo uma partição de 70/30 com uma random seed fixa.
 
 As tabelas completas de arquitetura e epochs do Keras encontram-se no Anexo, Tabelas~\ref{tab:keras_one_to_many}, \ref{tab:keras_numerar} e~\ref{tab:keras_epochs}.
 
 Os resultados obtidos mostram que a estratégia One to Many é significativamente mais adequada para este problema de classificação multiclasse, atingindo desempenhos superiores de forma consistente em praticamente todas as arquiteturas testadas. Além disso, esta abordagem demonstrou maior estabilidade, apresentando melhorias mais graduais à medida que se aumentava a complexidade da rede.
 
-Por outro lado, a abordagem baseada na numeração da target, embora inicialmente apresente resultados bastante inferiores, revelou uma maior sensibilidade ao aumento da capacidade da rede e do número de epochs, registando melhorias mais acentuadas com arquiteturas mais profundas e mais tempo de treino. Este comportamento pode ser explicado pelo facto de esta estratégia exigir da rede uma aprendizagem mais precisa das relações entre os diferentes níveis de consumo --- por exemplo, uma determinada entrada pode ter Consumption MediumHigh (4) e a rede dar como output 3.4, que será arredondado para 3 (Medium), embora esteja muito perto do resultado correto.
+Por outro lado, a abordagem baseada na numeração da target, embora inicialmente apresente resultados bastante inferiores, revelou uma maior sensibilidade ao aumento da capacidade da rede e do número de epochs, registando melhorias mais acentuadas com arquiteturas mais profundas e mais tempo de treino. Este comportamento pode ser explicado pelo facto de esta estratégia exigir da rede uma aprendizagem mais precisa das relações entre os diferentes níveis de consumo. Por exemplo, uma determinada entrada pode ter Consumption MediumHigh (4) e a rede dar como output 3.4, que será arredondado para 3 (Medium), embora esteja muito perto do resultado correto. Isto fica ainda mais evidente se analisarmos a matriz de confusão dada pelo Scorer, correspondente à arquitetura de 4 layers (128, 64, 32, 16) com 5 epochs.
 
-O \textbf{melhor resultado} global do Keras foi obtido com a estratégia One to Many, arquitetura de 4 hidden layers (128, 64, 32, 16 neurónios) e 20 epochs, atingindo uma accuracy de \textbf{0.842} e Cohen's Kappa de \textbf{0.798}. Ainda assim, este resultado fica consideravelmente abaixo dos melhores modelos baseados em árvores, o que é esperado dado o menor número de dados de treino disponível para redes neuronais (partição 70/30 sem cross-validation).
+O efeito referido é mais acentuado para Medium, onde a rede apresenta dificuldades em determinar a ``fronteira'' entre os diversos níveis médios de consumo.
+De forma geral, os resultados evidenciam também que as redes neuronais desenvolvidas com Keras oferecem um grau de flexibilidade e configurabilidade substancialmente superior ao dos modelos anteriormente analisados, tornando a escolha da arquitetura, do método de representação dos dados e dos hiperparâmetros fatores decisivos para o desempenho final do modelo. Embora existisse margem para explorar arquiteturas mais complexas e processos de treino mais prolongados, essa exploração tornou-se limitada pelo elevado custo computacional associado ao treino destas redes.
 
 % =========================================================
 \section{Conclusão}
@@ -625,7 +625,7 @@ O \textbf{melhor resultado} global do Keras foi obtido com a estratégia One to 
 
 \subsection{Síntese dos resultados do dataset atribuído}
 
-Seguindo a metodologia SEMMA, começou-se por explorar o dataset de forma a identificar problemas de qualidade dos dados, padrões relevantes e possíveis transformações necessárias para a modelação. A análise realizada permitiu detectar missing values, outliers, inconsistências na target e features redundantes, conduzindo posteriormente à aplicação de diferentes estratégias de pré-processamento e transformação dos dados para resolver esses problemas.
+Seguindo a metodologia SEMMA, começou-se por explorar o dataset de forma a identificar problemas de qualidade dos dados, padrões relevantes e possíveis transformações necessárias para a modelação. A análise realizada permitiu detectar valores em falta, outliers, inconsistências na target e features redundantes, conduzindo posteriormente à aplicação de diferentes estratégias de pré-processamento e transformação dos dados para resolver esses problemas.
 
 Após a fase de modificação, foram desenvolvidos e avaliados cinco modelos de classificação distintos. A Tabela~\ref{tab:comparacao_final} sintetiza os melhores resultados obtidos para cada modelo.
 
@@ -648,9 +648,9 @@ Keras & 0.842 & 0.798 \\
 
 De forma geral, os resultados mostram que os modelos baseados em árvores apresentaram o melhor desempenho neste problema, sobretudo os métodos de ensemble (Random Forest e Gradient Boosted Trees). Estes modelos revelaram também maior robustez relativamente às transformações aplicadas aos dados, sendo pouco sensíveis às diferentes estratégias de tratamento de missing values e outliers.
 
-Por outro lado, as redes neuronais demonstraram maior dependência da preparação dos dados. Em particular, a escolha do método de normalização e da representação das variáveis categóricas teve impacto significativo no desempenho obtido. O modelo desenvolvido com Keras destacou-se pela maior flexibilidade e capacidade de adaptação da arquitetura da rede, permitindo explorar diferentes formas de representação da target e diferentes configurações de treino. Ainda assim, os resultados obtidos permaneceram inferiores aos melhores modelos baseados em árvores, principalmente devido à impossibilidade de usar cross-validation por limitações computacionais, o que reduziu o volume de dados de treino disponível.
+Por outro lado, as redes neuronais demonstraram maior dependência da preparação dos dados. Em particular, a escolha do método de normalização e da representação das variáveis categóricas teve impacto significativo no desempenho obtido. O modelo desenvolvido com Keras destacou-se pela maior flexibilidade e capacidade de adaptação da arquitetura da rede, permitindo explorar diferentes formas de representação da target e diferentes configurações de treino. Ainda assim, os resultados obtidos permaneceram inferiores aos melhores modelos baseados em árvores.
 
-Em termos globais, o problema do dataset atribuído revelou-se adequado para modelos de classificação baseados em árvores, sendo o Gradient Boosted Trees o modelo com melhor desempenho global. Este resultado é consistente com a natureza do problema: as relações entre as variáveis meteorológicas e o consumo energético envolvem padrões temporais e não-lineares que beneficiam de modelos com elevada capacidade de captura de interações entre features.
+De forma global, conclui-se que este problema é mais adequado a modelos baseados em árvores, capazes de capturar relações complexas entre as variáveis sem exigir um pré-processamento tão sensível como o requerido pelas redes neuronais. Importa ainda referir que os resultados do modelo em Keras, ao contrário dos restantes modelos que foram avaliados com cross-validation, foram obtidos com uma simples partição hold-out, devido ao elevado custo computacional associado ao treino da rede neuronal.
 
 \subsection{Síntese global do trabalho}
 
