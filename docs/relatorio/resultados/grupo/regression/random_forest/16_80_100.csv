@@ -1,0 +1,8 @@
+"row ID","Prediction (popularity)"
+"R^2",0.043675812572734896
+"mean absolute error",13.74217662719258
+"mean squared error",331.7693655455666
+"root mean squared error",18.214537203716336
+"mean signed difference",-0.013295853958208724
+"mean absolute percentage error",NaN
+"adjusted R^2",0.043675812572734896

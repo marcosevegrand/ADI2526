@@ -2,7 +2,7 @@
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[portuguese]{babel}
+\usepackage[main=portuguese]{babel}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{float}
@@ -15,6 +15,7 @@
 \usepackage{textcomp}
 \usepackage{fancyhdr}
 \usepackage{booktabs}
+\usepackage{ragged2e}
 
 \geometry{margin=2.5cm}
 \renewcommand{\baselinestretch}{1.15}
@@ -30,6 +31,7 @@
 }
 
 \newcommand{\code}[1]{{\ttfamily\hyphenchar\font=45\relax #1}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -39,6 +41,8 @@
 \renewcommand{\headrulewidth}{0.4pt}
 
 \begin{document}
+
+\hypersetup{pageanchor=false}
 
 \thispagestyle{empty}
 \begin{titlepage}
@@ -71,6 +75,7 @@
 \tableofcontents
 \hypersetup{linkcolor=blue}
 \clearpage
+\hypersetup{pageanchor=true}
 \pagenumbering{arabic}
 
 % =========================================================
@@ -96,65 +101,77 @@ Cada tarefa é descrita em parte própria do relatório, com a respetiva fundame
 
 O dataset \code{spotify\_tracks.csv} foi gerado por um \textit{script} Python especificamente concebido para simular um conjunto de dados realista sobre faixas musicais da plataforma Spotify. O ficheiro contém \textbf{100\,500 registos} e \textbf{21 colunas}, cobrindo o período temporal de \textbf{2000 a 2024} e \textbf{20 géneros} musicais distintos. Cada registo representa uma faixa, caracterizada por atributos de identificação, variáveis de contexto editorial e um conjunto de \textit{features} acústicas extraídas da API do Spotify.
 
-O domínio analisado é o da análise musical e do consumo digital. As \textit{features} acústicas --- como \code{danceability}, \code{energy}, \code{loudness} e \code{acousticness} --- capturam propriedades sonoras objetivas, enquanto variáveis como \code{genre}, \code{release\_year} e \code{explicit} fornecem contexto editorial. O target principal é \code{popularity}, uma pontuação numérica entre 0 e 100.
+O domínio analisado é o da análise musical e do consumo digital. As \textit{features} acústicas --- como \code{danceability}, \code{energy}, \code{loudness} e \code{acousticness} --- capturam propriedades sonoras objetivas, enquanto variáveis como \code{genre}, \code{release\_year} e \code{explicit} fornecem contexto editorial. A coluna \code{popularity} representa uma pontuação sintética entre 0 e 100 associada à visibilidade relativa de cada faixa.
 
-O gerador não produziu um \textit{dataset} limpo; pelo contrário, introduziu deliberadamente problemas de qualidade comuns em cenários reais de ciência de dados. Foram injetados valores em falta, \textit{outliers} numéricos em várias colunas e 500 linhas duplicadas. Existe ainda um ficheiro auxiliar, \code{spotify\_tracks\_errors\_log.csv}, que regista a localização exata de cada erro introduzido e serviu como referência para validação das etapas de preparação.
+O gerador não produziu um \textit{dataset} limpo; pelo contrário, introduziu deliberadamente problemas de qualidade comuns em cenários reais de análise aplicada. Foram injetados \textit{missing values}, \textit{outliers} numéricos em várias colunas e 500 linhas duplicadas. Existe ainda um ficheiro auxiliar, \code{spotify\_tracks\_errors\_log.csv}, que regista a localização exata de cada erro introduzido e serviu como referência para validação das etapas de preparação.
 
-\begin{table}[ht]
-\centering
-\caption{Estrutura do dataset Spotify Tracks}
-\label{tab:estrutura_spotify}
-\begin{tabular}{p{3cm}p{9.5cm}}
+\begin{longtable}{p{3.2cm}p{9.1cm}}
+\caption{Estrutura do dataset Spotify Tracks}\label{tab:estrutura_spotify}\\
 \toprule
-\textbf{Grupo} & \textbf{Colunas}\\
+\textbf{Coluna} & \textbf{Descrição}\\
 \midrule
-Identificação & \code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}\\
-Contexto & \code{release\_year}, \code{genre}, \code{explicit}, \code{key}, \code{mode}, \code{time\_signature}\\
-\textit{Target} & \code{popularity}\\
-Áudio & \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence}, \code{tempo}, \code{duration\_ms}\\
+\endfirsthead
+\toprule
+\textbf{Coluna} & \textbf{Descrição}\\
+\midrule
+\endhead
+\code{track\_id} & identificador sintético único da faixa\\
+\code{track\_name} & título da faixa\\
+\code{artist\_name} & nome do artista principal\\
+\code{album\_name} & título do álbum\\
+\code{release\_year} & ano de lançamento entre 2000 e 2024\\
+\code{genre} & rótulo do género musical principal\\
+\code{explicit} & indicador booleano de conteúdo explícito\\
+\code{popularity} & pontuação sintética de popularidade entre 0 e 100, usada em tarefas de ranking e na regressão\\
+\code{danceability} & grau em que a faixa é ritmicamente adequada para dançar\\
+\code{energy} & intensidade e nível de atividade percecionados\\
+\code{loudness} & volume global em dB\\
+\code{speechiness} & intensidade de conteúdo falado\\
+\code{acousticness} & confiança de que a faixa é acústica\\
+\code{instrumentalness} & confiança de que a faixa tem pouco ou nenhum conteúdo vocal\\
+\code{liveness} & probabilidade de presença de audiência ao vivo\\
+\code{valence} & positividade musical\\
+\code{tempo} & BPM estimado\\
+\code{key} & tonalidade codificada entre 0 e 11\\
+\code{mode} & 1 para maior, 0 para menor\\
+\code{time\_signature} & número estimado de batidas por compasso\\
+\code{duration\_ms} & duração da faixa em milissegundos\\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{longtable}
 
 \subsection{Objetivos}
 
 Os objetivos definidos para esta tarefa foram:
 \begin{itemize}
-    \item garantir uma preparação robusta dos dados, com tratamento de duplicados, valores em falta, \textit{outliers} e criação de atributos derivados;
+    \item garantir uma preparação robusta dos dados, com tratamento de duplicados, \textit{missing values}, \textit{outliers} e criação de atributos derivados;
     \item identificar perfis acústicos através de \textit{k-means} e interpretar a composição dos \textit{clusters} obtidos;
     \item treinar modelos de classificação para prever o género musical (\code{genre}, 20 classes) a partir das \textit{features} acústicas, relacionando esta abordagem supervisionada com a segmentação não supervisionada do \textit{clustering};
-    \item treinar modelos de regressão para prever \code{popularity} a partir das variáveis acústicas, de contexto e do género musical (codificado em \textit{one-hot});
-    \item produzir uma análise crítica dos resultados, com foco na relação entre \textit{clustering} e classificação, na contribuição do género para a regressão e no desempenho preditivo cruzado das três vertentes.
+    \item treinar modelos de regressão para prever \code{popularity} a partir das variáveis acústicas, de contexto e do género musical;
+    \item produzir uma análise crítica dos resultados, com foco na relação entre \textit{clustering} e classificação, na contribuição do género para a regressão e no desempenho preditivo das três vertentes.
 \end{itemize}
 
 % =========================================================
 \section{Metodologia CRISP-DM}
 % =========================================================
 
-A metodologia CRISP-DM (\textit{Cross-Industry Standard Process for Data Mining}) organiza o processo de análise de dados em seis fases iterativas: compreensão do negócio, compreensão dos dados, preparação dos dados, modelação, avaliação e \textit{deployment}. Esta metodologia orientou a estrutura do \textit{workflow} KNIME e a organização desta secção do relatório.
-
-\subsection{Compreensão do negócio}
-
-O objetivo analítico é triplo: caracterizar faixas musicais através de perfis acústicos (segmentação), prever o género musical a partir dessas características (classificação) e prever a popularidade com base nas propriedades sonoras e de contexto (regressão). Na prática, estes objetivos traduzem-se em casos de uso como segmentação de catálogo, recomendação musical e análise do grau em que os atributos de áudio explicam o sucesso comercial de uma faixa.
-
-Do ponto de vista do negócio, importa perceber se as \textit{features} acústicas fornecidas pela API do Spotify são suficientemente informativas para discriminar géneros musicais e prever popularidade. Esta pergunta tem valor prático imediato: uma plataforma de \textit{streaming} pode usar estes modelos para etiquetagem automática de catálogo, curadoria de playlists e análise preditiva de desempenho.
+A metodologia CRISP-DM (\textit{Cross-Industry Standard Process for Data Mining}) serviu como referência estrutural para a Tarefa 1, mas foi aplicada apenas nas fases relevantes para o trabalho realizado: compreensão dos dados, preparação dos dados, modelação e avaliação. A etapa de compreensão de negócio foi intencionalmente omitida por se tratar de um problema académico já formulado no enunciado, e o processo não avançou para \textit{deployment}, uma vez que o objetivo era analisar e comparar modelos em ambiente experimental.
 
 \subsection{Compreensão dos dados}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Data Understanding (Screenshot).png}
     \caption{Workflow da fase de Compreensão dos Dados no KNIME}
     \label{fig:workflow_data_und}
 \end{figure}
 
-O bloco de \textit{Data Understanding} do \textit{workflow} foi implementado com 31 nós KNIME, organizados para cobrir todas as dimensões relevantes da qualidade dos dados. A leitura inicial, através do nó \code{CSV Reader (\#2)}, confirmou a importação de 100\,500 linhas e 21 colunas, com as \textit{features} de áudio corretamente interpretadas como numéricas.
+O bloco de \textit{Data Understanding} do \textit{workflow} foi organizado para cobrir as dimensões essenciais da qualidade dos dados. A leitura inicial, através do nó \code{CSV Reader}, confirmou a importação de 100\,500 linhas e 21 colunas, com as \textit{features} de áudio corretamente interpretadas como numéricas.
 
-O nó \code{Statistics (\#3)} foi configurado para 12 colunas numéricas --- \code{release\_year}, \code{popularity}, \code{duration\_ms}, \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence} e \code{tempo} --- e revelou, de forma quantitativa, os problemas centrais do dataset. As \textit{features} acústicas apresentam cerca de 3\,000 valores em falta por coluna (por exemplo: 3\,013 em \code{danceability}, 3\,021 em \code{speechiness} e 3\,026 em \code{tempo}). Em paralelo, várias colunas limitadas teoricamente ao intervalo $[0,1]$ exibem violações claras de domínio, como \code{danceability} com mínimo $-0.299$ e máximo $1.497$, \code{energy} com mínimo $-0.298$ e máximo $1.498$, e \code{valence} com mínimo $-0.300$ e máximo $1.497$. Detetaram-se ainda extremos artificiais em \code{loudness} (até $-89.95$ dB) e \code{tempo} (até 419.95 BPM), consistentes com a injeção deliberada de \textit{outliers} prevista no gerador.
+O nó \code{Statistics} foi configurado para 12 colunas numéricas --- \code{release\_year}, \code{popularity}, \code{duration\_ms}, \code{danceability}, \code{energy}, \code{loudness}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{valence} e \code{tempo} --- e revelou, de forma quantitativa, os problemas centrais do dataset. As \textit{features} acústicas apresentam cerca de 3\,000 \textit{missing values} por coluna (por exemplo: 3\,013 em \code{danceability}, 3\,021 em \code{speechiness} e 3\,026 em \code{tempo}). Em paralelo, várias colunas limitadas teoricamente ao intervalo $[0,1]$ exibem violações claras de domínio, como \code{danceability} com mínimo $-0.299$ e máximo $1.497$, \code{energy} com mínimo $-0.298$ e máximo $1.498$, e \code{valence} com mínimo $-0.300$ e máximo $1.497$. Detetaram-se ainda extremos artificiais em \code{loudness} (até $-89.95$ dB) e \code{tempo} (até 419.95 BPM), consistentes com a injeção deliberada de \textit{outliers} prevista no gerador.
 
 A componente categórica foi examinada com cinco nós \code{Value Counter}, cobrindo \code{genre} (20 géneros confirmados), \code{explicit}, \code{mode}, \code{key} e \code{time\_signature}. A exploração univariada assentou em 12 histogramas e 7 \textit{boxplots}, que documentaram as distribuições das variáveis contínuas.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.45\textwidth]{Histogram - Popularity.png}
     \hfill
@@ -163,28 +180,28 @@ A componente categórica foi examinada com cinco nós \code{Value Counter}, cobr
     \label{fig:spotify_histogramas}
 \end{figure}
 
-As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pares \code{energy--loudness}, \code{energy--acousticness}, \code{danceability--valence} e \code{release\_year--popularity} --- e uma matriz de correlação linear sobre 15 colunas, visualizada em \code{Heatmap (\#240)} (Figura~\ref{fig:spotify_corr}).
+As relações bivariadas foram analisadas com 4 gráficos de dispersão --- pares \code{energy--loudness}, \code{energy--acousticness}, \code{danceability--valence} e \code{release\_year--popularity} --- e uma matriz de correlação linear sobre 15 colunas, visualizada em \code{Heatmap} (Figura~\ref{fig:spotify_corr}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{Heatmap - Features_Correlation.png}
     \caption{Matriz de correlação linear sobre as principais \textit{features} numéricas do dataset}
     \label{fig:spotify_corr}
 \end{figure}
 
-A deteção de duplicados foi realizada através do par \code{GroupBy (\#40)} + \code{Row Filter (\#39)}, que isolou 500 registos repetidos, confirmando a injeção de duplicados prevista pelo gerador.
+A deteção de duplicados foi realizada através do par \code{GroupBy} + \code{Row Filter}, que isolou 500 registos repetidos, confirmando a injeção de duplicados prevista pelo gerador.
 
-Em síntese, esta fase demonstrou que o \textit{dataset} continha, de forma inequívoca, os quatro tipos de problemas que a preparação subsequente teria de resolver: valores em falta, violações de domínio, \textit{outliers} e duplicados. A Tabela~\ref{tab:problemas_spotify} resume a evidência recolhida.
+Em síntese, esta fase demonstrou que o \textit{dataset} continha, de forma inequívoca, os quatro tipos de problemas que a preparação subsequente teria de resolver: \textit{missing values}, violações de domínio, \textit{outliers} e duplicados. A Tabela~\ref{tab:problemas_spotify} resume a evidência recolhida.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Problemas de qualidade evidenciados na fase de compreensão dos dados}
 \label{tab:problemas_spotify}
-\begin{tabular}{p{3.2cm}p{7cm}p{4cm}}
+\begin{tabular}{L{3.2cm}L{7cm}L{4cm}}
 \toprule
 \multicolumn{1}{c}{\textbf{Problema}} & \multicolumn{1}{c}{\textbf{Evidência no workflow}} & \multicolumn{1}{c}{\textbf{Consequência}}\\
 \midrule
-Valores em falta & Cerca de 3\,000 missings por \textit{feature} acústica; p.ex. 3\,013 em \code{danceability}, 3\,021 em \code{speechiness}, 3\,026 em \code{tempo} & Imputação em \code{Missing Value}\\
+\textit{Missing values} & Cerca de 3\,000 missings por \textit{feature} acústica; p.ex. 3\,013 em \code{danceability}, 3\,021 em \code{speechiness}, 3\,026 em \code{tempo} & Imputação em \code{Missing Value}\\
 Valores fora de domínio & \code{danceability}, \code{energy} e \code{valence} com mínimos negativos e máximos acima de 1; \code{popularity} validada em $[0,100]$ & Sanitização em \code{Expression}\\
 Extremos artificiais & \code{tempo} até 419.95, \code{loudness} até -89.95 dB, \code{duration\_ms} com extremos fora do perfil central & Tratamento em \code{Numeric Outliers}\\
 Duplicados & \code{GroupBy} e \code{Row Filter} isolam exatamente 500 casos & Remoção em \code{Duplicate Row Filter}\\
@@ -194,22 +211,22 @@ Duplicados & \code{GroupBy} e \code{Row Filter} isolam exatamente 500 casos & Re
 
 \subsection{Preparação dos dados}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Data Preparation (Screenshot).png}
     \caption{Workflow da fase de Preparação dos Dados no KNIME}
     \label{fig:workflow_data_prep}
 \end{figure}
 
-A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering}, classificação e regressão.
+A preparação dos dados foi implementada como um pipeline sequencial com cinco etapas principais, executadas antes da separação entre os ramos de \textit{clustering}, classificação e regressão. Esta preparação comum garante que as três vertentes partem exatamente da mesma base limpa e comparável, divergindo apenas quando os objetivos analíticos passam a exigir conjuntos de atributos diferentes.
 
 \subsubsection{Remoção de duplicados}
 
-A primeira operação do pipeline é o nó \code{Duplicate Row Filter (\#41)}, que compara todas as colunas exceto \code{track\_id}, remove as linhas repetidas e conserva a primeira ocorrência. O resultado confirma a passagem de 100\,500 para 100\,000 linhas, eliminando os 500 duplicados.
+A primeira operação do pipeline é o nó \code{Duplicate Row Filter}, que compara todas as colunas exceto \code{track\_id}, remove as linhas repetidas e conserva a primeira ocorrência. O resultado confirma a passagem de 100\,500 para 100\,000 linhas, eliminando os 500 duplicados.
 
 \subsubsection{Sanitização e engenharia de atributos}
 
-O nó \code{Expression (\#42)} concentra num único ponto oito transformações que, num \textit{workflow} menos compacto, estariam dispersas por múltiplos nós. As operações realizadas foram:
+O nó \code{Expression} concentra num único ponto oito transformações que, num \textit{workflow} menos compacto, estariam dispersas por múltiplos nós. As operações realizadas foram:
 
 \begin{itemize}
     \item conversão de valores fora do domínio $[0,100]$ de \code{popularity} para \textit{missing};
@@ -220,39 +237,47 @@ O nó \code{Expression (\#42)} concentra num único ponto oito transformações 
     \item criação da variável auxiliar \code{popularity\_class} (Baixa/Media/Alta) para estratificação da partição treino/teste.
 \end{itemize}
 
-Esta etapa é metodologicamente relevante porque, em vez de eliminar precocemente as linhas problemáticas, opta por converter violações de domínio em valores em falta, delegando a decisão para o nó seguinte.
+Esta etapa é metodologicamente relevante porque, em vez de eliminar precocemente as linhas problemáticas, opta por converter violações de domínio em \textit{missing values}, delegando a decisão para o nó seguinte.
 
-\subsubsection{Imputação de valores em falta}
+\subsubsection{Imputação de \textit{missing values}}
 
-O nó \code{Missing Value (\#43)} recebe tanto os valores em falta originais do CSV como os gerados pelo \code{Expression}. A estratégia de imputação adotada não é uniforme, refletindo uma escolha ponderada por coluna:
+O nó \code{Missing Value} recebe tanto os \textit{missing values} originais do CSV como os gerados pelo \code{Expression}. A estratégia de imputação adotada não é uniforme, refletindo uma escolha ponderada por coluna:
 
 \begin{itemize}
-    \item \textbf{Média}: \code{danceability}, \code{valence}.
-    \item \textbf{Mediana}: \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{loudness}, \code{tempo}, \code{duration\_ms}.
-    \item \textbf{Remover linha}: \code{popularity} (target), caso a sanitização anterior o converta em \textit{missing}.
+    \item \textbf{Média}: \code{danceability}, \code{valence}. Estas duas variáveis, depois da sanitização do domínio $[0,1]$, mantêm distribuições relativamente estáveis e sem caudas extremas comparáveis às de \code{tempo} ou \code{loudness}. A média preserva o centro global e introduz menos distorção quando o objetivo é manter a escala contínua original destas medidas.
+    \item \textbf{Mediana}: \code{energy}, \code{speechiness}, \code{acousticness}, \code{instrumentalness}, \code{liveness}, \code{loudness}, \code{tempo}, \code{duration\_ms}. Nestas colunas existem distribuições mais assimétricas ou mais sensíveis a extremos, pelo que a mediana é mais robusta e evita deslocar artificialmente a massa central por influência de valores muito altos ou muito baixos.
+    \item \textbf{Remover linha}: \code{popularity}, caso a sanitização anterior o converta em \textit{missing}. Nesta fase ainda não se entrou no ramo de regressão, mas já se sabe que a coluna será a variável a prever nesse ramo; por isso, imputá-la introduziria observações com resposta artificial e contaminaria a avaliação posterior.
 \end{itemize}
 
-O resultado executado confirma a passagem de 100\,000 para \textbf{99\,353 registos} --- os 647 registos eliminados correspondem a linhas em que o target \code{popularity} ficou inválido após sanitização.
+O resultado executado confirma a passagem de 100\,000 para \textbf{99\,353 registos} --- os 647 registos eliminados correspondem a linhas em que a coluna \code{popularity} ficou inválida após sanitização.
 
 \subsubsection{Tratamento de \textit{outliers}}
 
-Os \textit{outliers} contínuos são tratados no nó \code{Numeric Outliers (\#45)}, que intervém sobre três colunas --- \code{duration\_ms}, \code{loudness} e \code{tempo} --- utilizando o critério IQR com fator 3.0 e substituindo os valores extremos pelo limite admissível mais próximo. Esta abordagem preserva as linhas afetadas, evitando perda adicional de dados.
+Os \textit{outliers} contínuos são tratados no nó \code{Numeric Outliers}, que intervém sobre três colunas --- \code{duration\_ms}, \code{loudness} e \code{tempo} --- utilizando o critério IQR com fator 3.0 e substituindo os valores extremos pelo limite admissível mais próximo. A escolha destas colunas foi intencional: são variáveis contínuas em escala aberta, nas quais os \textit{boxplots} e as estatísticas resumidas mostraram extremos claramente isolados da massa principal. Pelo contrário, as \textit{features} limitadas a $[0,1]$ já tinham sido tratadas antes por sanitização de domínio, e colunas discretas como \code{key}, \code{mode}, \code{time\_signature} ou \code{release\_year} não beneficiariam de um corte por IQR, porque os seus valores extremos podem ser semanticamente válidos e não correspondem necessariamente a erro.
+
+O fator IQR 3.0 foi preferido ao valor clássico 1.5 por duas razões. Primeiro, o gerador injeta extremos artificiais bastante afastados, pelo que um limiar mais largo continua a capturar os casos realmente anómalos. Segundo, um corte demasiado agressivo em \code{tempo} ou \code{duration\_ms} arriscaria comprimir caudas legítimas de músicas invulgarmente longas ou rápidas. Assim, o IQR=3.0 funciona aqui como compromisso entre robustez e preservação da variabilidade natural.
 
 \subsubsection{Seleção de variáveis e separação de ramos}
 
-O nó \code{Column Filter (\#47)} reduz o \textit{dataset} à base comum efetivamente usada pelos ramos de modelação, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), a coluna redundante \code{duration\_ms} (substituída por \code{duration\_min}) e os atributos \code{key}, \code{mode} e \code{time\_signature}. A coluna \code{genre} é preservada. O resultado executado do nó apresenta \textbf{99\,353 linhas} e \textbf{15 colunas}, a partir das quais se abrem três ramos:
+O nó \code{Column Filter} reduz o \textit{dataset} à base comum efetivamente usada pelos ramos de modelação, removendo identificadores (\code{track\_id}, \code{track\_name}, \code{artist\_name}, \code{album\_name}), a coluna redundante \code{duration\_ms} (substituída por \code{duration\_min}) e os atributos \code{key}, \code{mode} e \code{time\_signature}. A coluna \code{genre} é preservada. O resultado executado apresenta \textbf{99\,353 linhas} e \textbf{15 colunas}, a partir das quais se abrem três ramos.
+
+Esta separação não é meramente organizacional; ela reflete necessidades analíticas distintas. O ramo de \textit{clustering} tem de operar sem rótulos para que os grupos emergentes sejam definidos apenas pela semelhança acústica. O ramo de classificação necessita de manter \code{genre} como variável a prever, mas deve excluir variáveis editoriais que poderiam enviesar a comparação com o \textit{clustering}. Já o ramo de regressão procura explicar \code{popularity} com o máximo de contexto útil, pelo que conserva \code{release\_year}, \code{explicit} e a codificação de \code{genre}. Desta forma, os três ramos partem da mesma preparação, mas cada um recebe exatamente a informação coerente com o seu objetivo.
+
+Em termos operacionais, os três ramos ficam definidos do seguinte modo:
 
 \begin{itemize}
-    \item \textbf{Ramo de \textit{clustering}}: reduzido a 10 \textit{features} acústicas normalizadas (Min-Max para $[0,1]$) --- sem género, que é reintroduzido apenas no pós-processamento para interpretação semântica;
-    \item \textbf{Ramo de classificação}: o \code{Column Filter (\#220)} isola 11 colunas --- as 10 \textit{features} acústicas mais o target \code{genre} --- e a \code{Table Partitioner (\#234)} cria uma partição 80/20, estratificada por género e com \textit{seed}=1, partilhada entre a MLP e a \textit{Random Forest};
-    \item \textbf{Ramo de regressão}: o nó \code{One to Many (\#221)} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo a tabela para 34 colunas totais, e a partição é feita a 80/20 estratificada por \code{popularity\_class}.
+    \item \textbf{Ramo de \textit{clustering}}: reduzido a 10 \textit{features} acústicas normalizadas (Min-Max para $[0,1]$), excluindo \code{genre} e \code{popularity} para que a segmentação seja inteiramente não supervisionada;
+    \item \textbf{Ramo de classificação}: um \code{Column Filter} isola 11 colunas --- as 10 \textit{features} acústicas mais \code{genre} --- e a \code{Table Partitioner} cria uma partição 80/20, estratificada por género e com \textit{seed}=1, partilhada entre a MLP e a \textit{Random Forest};
+    \item \textbf{Ramo de regressão}: o nó \code{One to Many} codifica \code{genre} em 20 colunas binárias (\textit{one-hot encoding}), expandindo a tabela para 34 colunas totais, e a partição é feita a 80/20 estratificada por \code{popularity\_class}.
 \end{itemize}
+
+Para suportar as visualizações bidimensionais, foi ainda calculado um PCA comum na fase de preparação, sempre sobre as mesmas \textit{features} musicais normalizadas. As coordenadas resultantes foram depois reutilizadas nos \textit{scatter plots} de \textit{clustering} e de classificação. Assim, os gráficos PCA são comparáveis entre si: a diferença visual entre eles não resulta de projeções diferentes, mas apenas da variável usada para colorir os pontos (\textit{cluster} ou género previsto).
 
 \subsection{Modelação}
 
 \subsubsection{\textit{Clustering} de perfis acústicos}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Clustering (Screenshot).png}
     \caption{Workflow da fase de \textit{Clustering} no KNIME}
@@ -262,43 +287,83 @@ O nó \code{Column Filter (\#47)} reduz o \textit{dataset} à base comum efetiva
 \textbf{Método do cotovelo.}
 A seleção do número de \textit{clusters} baseou-se no método do cotovelo. Foram executadas sete experiências de \textit{k-means} para valores de $k \in \{3, 4, 5, 6, 7, 8, 9\}$, com inicialização aleatória, \textit{seed}=1 e 99 iterações máximas. Em cada ramo candidato, a soma das distâncias quadradas intra-\textit{cluster} (WCSS) foi calculada manualmente: o nó \code{Joiner} associa cada ponto ao centróide do respetivo \textit{cluster}, o nó \code{Math Formula} calcula a distância euclidiana quadrada às 10 coordenadas do centróide, e o nó \code{GroupBy} agrega os valores. As sete linhas de WCSS foram concatenadas e representadas graficamente (Figura~\ref{fig:elbow}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.82\textwidth]{Line Plot - Elbow_Technique.png}
     \caption{Soma das distâncias quadradas intra-\textit{cluster} (WCSS) para $k \in \{3,\ldots,9\}$ --- método do cotovelo}
     \label{fig:elbow}
 \end{figure}
 
-A curva apresenta uma inflexão visível entre $k=4$ e $k=6$, com ganhos decrescentes para valores superiores, indicando que a zona de equilíbrio entre compacidade e número de grupos se situa em torno de $k=5$.
+A curva apresenta uma inflexão visível entre $k=4$ e $k=6$, com ganhos decrescentes para valores superiores, indicando que a zona de equilíbrio entre compacidade e número de grupos se situa em torno de $k=5$. Uma escolha muito mais alta, como $k=20$, seria difícil de justificar: o cotovelo já não sugere ganhos estruturais relevantes depois de 5 ou 6 grupos, a \textit{silhouette} começa a degradar-se a partir daí, e a divisão em 20 grupos tenderia a fragmentar um espaço acústico que já é sobreposto. Em vez de produzir perfis mais claros, isso geraria \textit{clusters} menores, menos estáveis e semanticamente redundantes.
 
 \textbf{Modelo final.}
-O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da curva do cotovelo. O nó \code{k-Means (\#141)} produz diretamente a coluna \code{Cluster}, dispensando um \textit{assigner} separado. Os centróides foram transformados para formato longo (\code{Unpivot}) e visualizados num gráfico de barras agrupado (Figura~\ref{fig:centroides}), que permite comparar o perfil acústico médio de cada \textit{cluster} nas 10 \textit{features} normalizadas.
+O modelo de \textit{clustering} adotado fixou $k = 5$, coerente com a leitura da curva do cotovelo. O nó \code{k-Means} produz diretamente a coluna \code{Cluster}. Os centróides foram transformados para formato longo (\code{Unpivot}) e visualizados num gráfico de barras agrupado (Figura~\ref{fig:centroides}), que permite comparar o perfil acústico médio de cada \textit{cluster} nas 10 \textit{features} normalizadas.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.82\textwidth]{5clusters.png}
-    \caption{Perfil acústico médio de cada \textit{cluster} ($k=5$) nas 10 \textit{features} normalizadas}
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_0.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_1.png}\\[0.5em]
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_2.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_3.png}\\[0.5em]
+    \includegraphics[width=0.52\textwidth]{Cluster_Features_4.png}
+    \caption{Perfis acústicos médios dos cinco \textit{clusters} ($k=5$) nas principais \textit{features} normalizadas}
     \label{fig:centroides}
 \end{figure}
 
 \textbf{Interpretação.}
-A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} e \code{Cross Joiner}, obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} foi reintroduzida via \code{Joiner} por \code{RowID}, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot} e um gráfico de barras empilhadas (Figura~\ref{fig:genero_cluster}).
+A dimensão dos \textit{clusters} foi calculada através de \code{GroupBy} e \code{Cross Joiner}, obtendo-se a percentagem relativa de cada grupo. Para interpretação semântica, a coluna \code{genre} foi reintroduzida por junção com a tabela paralela preservada desde antes da remoção dessa coluna, permitindo construir uma matriz \code{Cluster $\times$ Genre} com \code{Pivot} e duas visualizações complementares: um gráfico de barras empilhadas e um \textit{heatmap}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{Bar Chart - Clusters_Genres.png}
     \caption{Distribuição dos géneros musicais por \textit{cluster} (barras empilhadas)}
     \label{fig:genero_cluster}
 \end{figure}
 
-Esta visualização confirma que os agrupamentos capturam afinidades estilísticas genuínas: o \textit{cluster\_0} apresenta o perfil mais acústico e instrumental (\code{acousticness} = 0.708; \code{instrumentalness} = 0.751), concentrando géneros como \textit{classical} e \textit{ambient}; o \textit{cluster\_1} concentra as faixas mais energéticas e rápidas (\code{energy} = 0.843; \code{tempo} = 0.614); e o \textit{cluster\_2} distingue-se pelo nível muito elevado de \code{danceability} (0.806) e \code{speechiness} (0.581), aproximando-se de géneros de matriz urbana como \textit{hip-hop}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{Heatmap - Clusters_Genres.png}
+    \caption{Matriz \textit{Cluster $\times$ Genre} em \textit{heatmap}, usada para analisar a concentração relativa de géneros em cada grupo}
+    \label{fig:heatmap_cluster_genero}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_0.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_1.png}
+    \caption{Perfis acústicos detalhados dos clusters 0 e 1}
+    \label{fig:cluster_features_01}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_2.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{Cluster_Features_3.png}
+    \caption{Perfis acústicos detalhados dos clusters 2 e 3}
+    \label{fig:cluster_features_23}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.52\textwidth]{Cluster_Features_4.png}
+    \caption{Perfil acústico detalhado do cluster 4}
+    \label{fig:cluster_features_4}
+\end{figure}
+
+As visualizações mostram que os agrupamentos capturam afinidades estilísticas genuínas, mas sem separações rígidas. O \textit{cluster\_0} apresenta o perfil mais acústico e instrumental, concentrando muitas faixas de \textit{classical} e \textit{ambient}. O \textit{cluster\_1} reúne faixas mais energéticas, mais altas em volume e, em média, mais rápidas, aproximando-se de zonas do catálogo onde \textit{rock}, \textit{electronic} e subgéneros intensos aparecem com frequência. O \textit{cluster\_2} distingue-se por \code{danceability} e \code{speechiness} elevadas, formando um grupo próximo de estilos urbanos e rítmicos.
+
+Os \textit{clusters} \textit{3} e \textit{4} são importantes precisamente porque mostram que o espaço acústico não se divide apenas em perfis extremos. O \textit{cluster\_3} surge como um grupo intermédio e relativamente equilibrado, com valores moderados em várias \textit{features}, funcionando como zona de transição entre perfis mais acústicos e perfis mais energéticos. O \textit{cluster\_4} evidencia um perfil próprio, mais melódico e acessível, com combinação de energia moderada, valência relativamente favorável e menor radicalização nas restantes medidas; por isso, tende a agregar géneros populares mais híbridos. A leitura conjunta das Figuras~\ref{fig:centroides}, \ref{fig:cluster_features_01}, \ref{fig:cluster_features_23} e \ref{fig:cluster_features_4} mostra que os cinco grupos não são arbitrários: cada um ocupa uma zona acústica reconhecível, ainda que algumas fronteiras sejam difusas.
 
 \textbf{Validação.}
 A qualidade do agrupamento foi avaliada com o coeficiente de \textit{silhouette}. O método hierárquico (\textit{Euclidean}, \textit{linkage complete}) operou sobre uma amostra de \textbf{5\,000 linhas} e produziu um valor médio global de \textbf{0.0883}. Para os modelos \textit{k-means}, os valores médios observados foram \textbf{0.1802} para $k=4$, \textbf{0.1805} para $k=5$ e \textbf{0.1619} para $k=6$, calculados sobre amostras estratificadas por \textit{cluster}. A escolha final de $k=5$ apoia-se na conjugação entre o método do cotovelo e a maior interpretabilidade semântica dos cinco perfis acústicos resultantes.
 
-A projeção PCA bidimensional dos pontos (Figura~\ref{fig:pca_clusters}) complementa a análise, confirmando a estrutura de sobreposição sugerida pelos valores de \textit{silhouette}.
+A projeção PCA bidimensional dos pontos (Figura~\ref{fig:pca_clusters}) complementa a análise, confirmando a estrutura de sobreposição sugerida pelos valores de \textit{silhouette}. Esta projeção usa o PCA calculado na preparação dos dados, sobre as mesmas \textit{features} musicais normalizadas usadas nos gráficos da classificação, garantindo comparabilidade visual entre os ramos.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.82\textwidth]{Scatter Plot - Clusters_PCA.png}
     \caption{Projeção PCA dos pontos e centróides (duas primeiras componentes), coloridos por \textit{cluster}}
@@ -307,7 +372,7 @@ A projeção PCA bidimensional dos pontos (Figura~\ref{fig:pca_clusters}) comple
 
 \subsubsection{Classificação de género musical}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Classification (Screenshot).png}
     \caption{Workflow da fase de Classificação no KNIME}
@@ -317,30 +382,30 @@ A projeção PCA bidimensional dos pontos (Figura~\ref{fig:pca_clusters}) comple
 A novidade face ao ramo de \textit{clustering} é a inclusão de um ramo de classificação supervisionada que utiliza as mesmas 10 \textit{features} acústicas, mas com o objetivo de prever o género musical (20 classes). Este desenho permite contrastar diretamente a aprendizagem não supervisionada (agrupamento por semelhança acústica, sem conhecimento dos rótulos) com a aprendizagem supervisionada (classificação informada pelo género real), medindo até que ponto os atributos de áudio contêm sinal suficiente para discriminar estilos musicais.
 
 \textbf{Configuração.}
-O ramo de classificação parte da base comum pós-preparação. O nó \code{Column Filter (\#220)} isola 11 colunas: as 10 \textit{features} acústicas e o target \code{genre}. A normalização Min-Max ($[0,1]$) é aplicada através do nó \code{Normalizer (\#218)}, garantindo que todas as variáveis contribuem em escala comparável.
+O ramo de classificação parte da base comum pós-preparação. O nó \code{Column Filter} isola 11 colunas: as 10 \textit{features} acústicas e o target \code{genre}. A normalização Min-Max ($[0,1]$) é aplicada através do nó \code{Normalizer}, garantindo que todas as variáveis contribuem em escala comparável.
 
 Foram treinados dois modelos supervisionados:
 \begin{itemize}
-    \item \textbf{RProp MLP (\#226)}: rede neuronal \textit{feedforward} com \textbf{duas camadas escondidas} de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 400 iterações (\textit{seed}=1). Usa a partição 80/20 estratificada por género (80\,000 exemplos de treino e 20\,000 de teste).
-    \item \textbf{\textit{Random Forest} (\#235)}: \textit{ensemble} de \textbf{100 árvores} de decisão, critério Gini, profundidade máxima 20, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. Usa a mesma partição 80/20 estratificada por género.
+    \item \textbf{RProp MLP}: rede neuronal \textit{feedforward} com \textbf{duas camadas escondidas} de 30 neurónios, treinada com o algoritmo \textit{RProp} durante 400 iterações (\textit{seed}=1). Usa a partição 80/20 estratificada por género (80\,000 exemplos de treino e 20\,000 de teste).
+    \item \textbf{\textit{Random Forest}}: \textit{ensemble} de \textbf{100 árvores} de decisão, critério Gini, profundidade máxima 20, amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}), com \textit{seed}=1. Usa a mesma partição 80/20 estratificada por género.
 \end{itemize}
 
-O uso de uma partição partilhada entre os dois classificadores torna a comparação direta metodologicamente mais limpa: MLP e \textit{Random Forest} são avaliadas sobre exatamente o mesmo conjunto de teste. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade sobre configurações diversas, incluindo diferentes profundidades, critérios de divisão e número de árvores.
+O uso de uma partição partilhada entre os dois classificadores torna a comparação direta metodologicamente mais limpa: MLP e \textit{Random Forest} são avaliadas sobre exatamente o mesmo conjunto de teste. Para a \textit{Random Forest}, foi ainda realizado um estudo de sensibilidade em etapas, começando por árvores pequenas para perceber o efeito da profundidade, fixando depois configurações mais competitivas para testar tamanho mínimo de nó, critério de divisão e número de árvores. A MLP foi refinada de forma análoga: primeiro variou-se o número de iterações com uma arquitetura simples, depois o número de neurónios numa camada escondida e, por fim, uma arquitetura com duas camadas escondidas.
 
 \textbf{Resultados.}
 A avaliação foi realizada através do nó \code{Scorer}, que calcula a exatidão (\textit{accuracy}), o erro, o número de classificações corretas e incorretas, e o coeficiente Kappa de Cohen. A Tabela~\ref{tab:metricas_class} sintetiza os resultados obtidos.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Métricas de classificação --- Previsão de género musical (20 classes)}
 \label{tab:metricas_class}
-\begin{tabular}{lcccc}
+\begin{tabular}{L{7.8cm}cccc}
 \toprule
 \textbf{Modelo} & \textbf{Exatidão} & \textbf{Erro} & \textbf{Corretas} & \textbf{Kappa}\\
 \midrule
 RProp MLP (80/20, 400 iter, 2 hidden layers 30) & 0.6815 & 0.3185 & 13\,630 & 0.6542\\
 \textit{Random Forest} (80/20, 100 árvores, Gini, prof. 20) & 0.6838 & 0.3162 & 13\,675 & 0.6564\\
-\textit{Random Forest} melhor config. (gini\_20\_1\_500) & 0.6844 & 0.3156 & 13\,688 & 0.6571\\
+RF melhor config. (\code{gini\_20\_1\_500}) & 0.6844 & 0.3156 & 13\,688 & 0.6571\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -348,7 +413,7 @@ RProp MLP (80/20, 400 iter, 2 hidden layers 30) & 0.6815 & 0.3185 & 13\,630 & 0.
 \textbf{Análise por classe.}
 A matriz de confusão visualizada no \textit{Heatmap} (Figura~\ref{fig:class_heatmap}) permite inspecionar a distribuição dos erros por classe, revelando que alguns géneros são classificados quase perfeitamente enquanto outros apresentam erros frequentes.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Heatmap - Genres_Prediction_Random_Forest.png}
     \caption{Matriz de confusão --- classificação de género via \textit{Random Forest} (20 classes)}
@@ -357,9 +422,9 @@ A matriz de confusão visualizada no \textit{Heatmap} (Figura~\ref{fig:class_hea
 
 A \textit{Random Forest} do ramo principal distingue quase perfeitamente géneros com assinatura acústica mais estável, como \textit{jazz} (\textit{recall} $\approx$ 0.990), \textit{classical} ($\approx$ 0.973), \textit{hip-hop} ($\approx$ 0.951) e \textit{ambient} ($\approx$ 0.951). Em contrapartida, classes como \textit{soul} ($\approx$ 0.293), \textit{k-pop} ($\approx$ 0.422), \textit{r\&b} ($\approx$ 0.450) e \textit{latin} ($\approx$ 0.456) revelam separação muito mais fraca, refletindo a maior sobreposição acústica destes géneros.
 
-A projeção PCA das previsões da \textit{Random Forest} (Figura~\ref{fig:class_pca_rf}) confirma visualmente esta sobreposição: as diferentes classes formam manchas com contornos difusos, com algumas classes mais compactas e outras dispersas.
+A projeção PCA das previsões da \textit{Random Forest} (Figura~\ref{fig:class_pca_rf}) confirma visualmente esta sobreposição: as diferentes classes formam manchas com contornos difusos, com algumas classes mais compactas e outras dispersas. Tal como no \textit{clustering}, o gráfico usa as coordenadas do PCA comum calculado na preparação, pelo que a comparação entre a Figura~\ref{fig:pca_clusters} e as figuras de classificação é feita no mesmo plano geométrico.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Scatter Plot - Genres_PCA_Rand_Forest.png}
     \caption{Projeção PCA das previsões da \textit{Random Forest} (pontos coloridos por género previsto)}
@@ -368,7 +433,7 @@ A projeção PCA das previsões da \textit{Random Forest} (Figura~\ref{fig:class
 
 A projeção PCA das previsões da RProp MLP confirma padrões semelhantes (Figura~\ref{fig:class_pca_mlp}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Scatter Plot - Genres_PCA_RProp_MLP.png}
     \caption{Projeção PCA das previsões da RProp MLP (pontos coloridos por género previsto)}
@@ -376,11 +441,11 @@ A projeção PCA das previsões da RProp MLP confirma padrões semelhantes (Figu
 \end{figure}
 
 \textbf{Estudo de sensibilidade da \textit{Random Forest}.}
-Foram testadas várias configurações adicionais de \textit{Random Forest}, variando o critério de divisão (Gini vs.\ \textit{Information Gain Ratio}), a profundidade máxima, o tamanho mínimo de nó e o número de árvores. Os resultados mostram que a partir das configurações intermédias o desempenho converge para um patamar estreito: 68.16\% (\code{gini\_16\_5\_100}), 68.38\% (\code{gini\_20\_1\_100}), 68.36\% (\code{gini\_20\_1\_200}) e 68.44\% (\code{gini\_20\_1\_500}). A troca do critério Gini por \textit{Information Gain Ratio} não melhora o desempenho em configurações comparáveis (68.38\% vs.\ 68.20\%), indicando que a fronteira de decisão é relativamente robusta à variação do critério de divisão.
+Foram testadas várias configurações adicionais de \textit{Random Forest}, variando o critério de divisão (Gini vs.\ \textit{Information Gain Ratio}), a profundidade máxima, o tamanho mínimo de nó e o número de árvores. A metodologia foi incremental: primeiro aumentou-se a profundidade com 100 árvores e tamanho mínimo 5; depois, mantendo profundidade elevada, testaram-se tamanhos mínimos menores; finalmente, com a melhor configuração estrutural, aumentou-se o número de árvores para verificar se a maior estabilidade do \textit{ensemble} melhorava a generalização. Os resultados mostram que a partir das configurações intermédias o desempenho converge para um patamar estreito: 68.16\% (\code{gini\_16\_5\_100}), 68.38\% (\code{gini\_20\_1\_100}), 68.36\% (\code{gini\_20\_1\_200}) e 68.44\% (\code{gini\_20\_1\_500}). A troca do critério Gini por \textit{Information Gain Ratio} não melhora o desempenho em configurações comparáveis (68.38\% vs.\ 68.20\%), indicando que a fronteira de decisão é relativamente robusta à variação do critério de divisão.
 
 A Tabela~\ref{tab:rf_sensibilidade} resume as configurações mais representativas do estudo.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Estudo de sensibilidade da \textit{Random Forest} para classificação de género}
 \label{tab:rf_sensibilidade}
@@ -405,7 +470,7 @@ info\_gain\_ratio\_20\_1\_100 & 0.6820 & 0.6543 & 100\\
 
 \subsubsection{Regressão da popularidade}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Regression (Screenshot).png}
     \caption{Workflow da fase de Regressão no KNIME}
@@ -413,37 +478,33 @@ info\_gain\_ratio\_20\_1\_100 & 0.6820 & 0.6543 & 100\\
 \end{figure}
 
 \textbf{Configuração.}
-O ramo de regressão foi expandido para incluir o género musical em \textit{one-hot encoding}. Além dos \textbf{12 preditores} originais (\code{release\_year}, \code{explicit} e as 10 \textit{features} de áudio, incluindo \code{duration\_min}), o nó \code{One to Many (\#221)} codifica os 20 géneros musicais em colunas binárias, totalizando \textbf{32 preditores} úteis para os modelos. Esta expansão concretiza a hipótese de que o género musical transporta informação complementar às \textit{features} acústicas para explicar a variabilidade da popularidade. A normalização Min-Max é aprendida no treino e aplicada ao teste, sem fuga de informação.
+O ramo de regressão foi expandido para incluir o género musical em \textit{one-hot encoding}. Além dos \textbf{12 preditores} originais (\code{release\_year}, \code{explicit} e as 10 \textit{features} de áudio, incluindo \code{duration\_min}), o nó \code{One to Many} codifica os 20 géneros musicais em colunas binárias, totalizando \textbf{32 preditores} úteis para os modelos. Esta expansão concretiza a hipótese de que o género musical transporta informação complementar às \textit{features} acústicas para explicar a variabilidade da popularidade. A normalização Min-Max é aprendida no treino e aplicada ao teste, sem fuga de informação.
 
-Foram treinados três modelos: regressão linear múltipla, árvore de regressão simples e \textit{Random Forest}, todos com 32 preditores e target \code{popularity}.
+Foram treinados três modelos: regressão linear múltipla, árvore de regressão simples e \textit{Random Forest}, todos com 32 preditores e variável resposta \code{popularity}.
 
 \textbf{Regressão linear múltipla.}
-O modelo linear, treinado com \code{Linear Regression Learner (\#163)}, inclui constante e utiliza todos os preditores disponíveis. As previsões foram avaliadas com \code{Numeric Scorer (\#165)}. O diagnóstico visual incluiu um gráfico de dispersão de valores reais vs.\ previstos e um histograma dos resíduos (Figura~\ref{fig:linear_diag}).
+O modelo linear, treinado com \code{Linear Regression Learner}, inclui constante e utiliza todos os preditores disponíveis. As previsões foram avaliadas com \code{Numeric Scorer}. O diagnóstico visual incluiu a análise dos resíduos (Figura~\ref{fig:linear_diag}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.45\textwidth]{regressionlinear.png}
-    \hfill
-    \includegraphics[width=0.45\textwidth]{regressionlinearh.png}
-    \caption{Diagnóstico do modelo linear: dispersão (esquerda) e histograma de resíduos (direita)}
+    \includegraphics[width=0.62\textwidth]{Histogram - Residuos_Linear_Regression.png}
+    \caption{Diagnóstico do modelo linear: histograma dos resíduos}
     \label{fig:linear_diag}
 \end{figure}
 
 \textbf{Árvore de regressão.}
-Para a árvore de regressão, o \textit{workflow} contém um ramo principal com \code{Simple Regression Tree Learner (\#166)}, e foram avaliadas configurações exportadas com diferentes níveis de poda/regularização. Entre as experiências, a melhor foi a configuração \code{5\_40\_20} (profundidade máxima 5, mínimo de registos por nó 40, tamanho mínimo de nó filho 20). Os diagnósticos encontram-se na Figura~\ref{fig:tree_diag}.
+Para a árvore de regressão, o \textit{workflow} contém um ramo principal com \code{Simple Regression Tree Learner}, e foram avaliadas configurações exportadas com diferentes níveis de poda/regularização. A afinação foi feita variando primeiro a profundidade para controlar a complexidade global da árvore e, depois, aumentando os mínimos de registos por nó e por nó filho para reduzir divisões demasiado específicas. Entre as experiências, a melhor foi a configuração \code{5\_40\_20} (profundidade máxima 5, mínimo de registos por nó 40, tamanho mínimo de nó filho 20). Os diagnósticos encontram-se na Figura~\ref{fig:tree_diag}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.45\textwidth]{regressiontreeplot.png}
-    \hfill
-    \includegraphics[width=0.45\textwidth]{regressiontreeh.png}
-    \caption{Diagnóstico da árvore de regressão: dispersão (esquerda) e histograma de resíduos (direita)}
+    \includegraphics[width=0.62\textwidth]{Histogram - Residuos_Simple_Regression_Tree.png}
+    \caption{Diagnóstico da árvore de regressão: histograma dos resíduos}
     \label{fig:tree_diag}
 \end{figure}
 
 A Tabela~\ref{tab:arvore_reg} apresenta o estudo de configurações da árvore de regressão.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Estudo de configurações da árvore de regressão (Profundidade\_MinRegs\_MinFilho)}
 \label{tab:arvore_reg}
@@ -462,20 +523,18 @@ A Tabela~\ref{tab:arvore_reg} apresenta o estudo de configurações da árvore d
 \end{table}
 
 \textbf{\textit{Random Forest}.}
-O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learner (Regression) (\#172)}, utiliza 100 árvores, \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}). Os diagnósticos encontram-se na Figura~\ref{fig:rf_diag}.
+O modelo de \textit{Random Forest}, configurado no nó \code{Random Forest Learner (Regression)}, utiliza \textit{seed}=1, \textit{bootstrap} ativo e amostragem de colunas em modo $\sqrt{.}$ (\textit{SquareRoot}). A configuração final selecionada foi \code{12\_80\_1000}: profundidade máxima 12, tamanho mínimo do nó 80 e 1000 árvores. Os diagnósticos encontram-se na Figura~\ref{fig:rf_diag}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.45\textwidth]{randonforestplot.png}
-    \hfill
-    \includegraphics[width=0.45\textwidth]{randomforesth.png}
-    \caption{Diagnóstico da \textit{Random Forest}: dispersão (esquerda) e histograma de resíduos (direita)}
+    \includegraphics[width=0.62\textwidth]{Histogram - Residuos_Random_Forest_Regression.png}
+    \caption{Diagnóstico da \textit{Random Forest}: histograma dos resíduos}
     \label{fig:rf_diag}
 \end{figure}
 
-Os resultados adicionais da \textit{Random Forest} de regressão apresentam-se na Tabela~\ref{tab:rf_reg}, comparando três configurações.
+Os resultados adicionais da \textit{Random Forest} de regressão apresentam-se na Tabela~\ref{tab:rf_reg}. A metodologia de afinação seguiu três passos. Primeiro, fixou-se o número de árvores em 100 para obter testes rápidos e comparáveis. Segundo, com profundidade sem limite, variou-se o tamanho mínimo do nó; valores muito pequenos apresentaram maior tendência para memorizar ruído, enquanto valores maiores suavizaram as previsões. Terceiro, fixado o tamanho mínimo 80, testou-se a profundidade da árvore e, por fim, aumentou-se o número de árvores para 500 e 1000, procurando maior estabilidade sem aumentar o risco de \textit{overfitting}. Embora algumas configurações tenham resultados muito próximos, \code{12\_80\_1000} foi escolhida como compromisso final entre erro, estabilidade e controlo da complexidade.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Estudo de configurações da \textit{Random Forest} de regressão}
 \label{tab:rf_reg}
@@ -483,9 +542,15 @@ Os resultados adicionais da \textit{Random Forest} de regressão apresentam-se n
 \toprule
 \textbf{Configuração} & $\mathbf{R^2}$ & \textbf{RMSE} & \textbf{MAE}\\
 \midrule
-6\_5\_100 & 0.0208 & 18.454 & 13.960\\
-nolimit\_nolimit\_50 & 0.0311 & 18.363 & 13.899\\
-nolimit\_nolimit\_100 & 0.0321 & 18.325 & 13.896\\
+nolimit\_5\_100 & 0.0383 & 18.265 & 13.805\\
+nolimit\_20\_100 & 0.0423 & 18.228 & 13.754\\
+nolimit\_80\_100 & 0.0433 & 18.218 & 13.745\\
+nolimit\_160\_100 & 0.0439 & 18.213 & 13.738\\
+8\_80\_100 & 0.0418 & 18.233 & 13.757\\
+12\_80\_100 & 0.0432 & 18.219 & 13.744\\
+16\_80\_100 & 0.0437 & 18.215 & 13.742\\
+12\_80\_500 & 0.0436 & 18.215 & 13.743\\
+12\_80\_1000 & 0.0436 & 18.215 & 13.743\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -494,7 +559,7 @@ nolimit\_nolimit\_100 & 0.0321 & 18.325 & 13.896\\
 
 A avaliação quantitativa da regressão baseou-se em $R^2$, MAE e RMSE, calculados via \code{Numeric Scorer}. A Tabela~\ref{tab:metricas_spotify} resume os resultados comparativos dos três modelos com a melhor configuração de cada.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Métricas de regressão --- Spotify Tracks (com género em \textit{one-hot})}
 \label{tab:metricas_spotify}
@@ -504,7 +569,7 @@ A avaliação quantitativa da regressão baseou-se em $R^2$, MAE e RMSE, calcula
 \midrule
 Regressão linear múltipla & 0.0459 & 18.194 & 13.718\\
 Árvore de regressão (\code{5\_40\_20}) & 0.0346 & 18.301 & 13.808\\
-\textit{Random Forest} (\code{nolimit\_nolimit\_100}) & 0.0321 & 18.325 & 13.896\\
+\textit{Random Forest} (\code{12\_80\_1000}) & 0.0436 & 18.215 & 13.743\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -518,7 +583,9 @@ Regressão linear múltipla & 0.0459 & 18.194 & 13.718\\
 
 Os resultados de \textit{clustering} mostram que existe estrutura nos dados musicais, mas a separação entre grupos não é nítida. Um coeficiente de \textit{silhouette} de 0.0883 no método hierárquico constitui um sinal de sobreposição relevante entre \textit{clusters}, o que é consistente com a natureza do domínio: diferentes faixas podem partilhar níveis semelhantes de energia, valência e dançabilidade sem que isso se traduza em grupos radicalmente distintos. Em termos práticos, o \textit{clustering} revela-se mais útil como ferramenta de segmentação exploratória do que como mecanismo de rotulagem rígida.
 
-A análise dos centróides por \textit{feature} permite identificar perfis sonoros diferenciados, e a composição dos \textit{clusters} por género musical confirma que os agrupamentos capturam afinidades estilísticas genuínas, ainda que com sobreposição. Os valores médios de \textit{silhouette} para \textit{k-means} foram 0.1802 para $k=4$, 0.1805 para $k=5$ e 0.1619 para $k=6$, mostrando que $k=4$ e $k=5$ são praticamente equivalentes em qualidade geométrica. A preferência por $k=5$ resulta, assim, menos de um ganho quantitativo e mais de uma melhor legibilidade semântica dos perfis obtidos.
+A análise dos centróides, dos perfis individuais por \textit{cluster}, do \textit{heatmap} \textit{Cluster $\times$ Genre} e da projeção PCA permite uma leitura mais completa dos cinco grupos. O \textit{cluster\_0} funciona como polo acústico/instrumental; o \textit{cluster\_1} representa o polo energético e mais agressivo; o \textit{cluster\_2} capta o perfil mais dançável e mais próximo de conteúdo falado; o \textit{cluster\_3} ocupa uma posição intermédia e transversal; e o \textit{cluster\_4} agrega um perfil moderado e melodicamente acessível. Esta estrutura faz sentido precisamente porque os cinco grupos equilibram diferenciação com legibilidade. Com menos grupos, perdem-se nuances; com demasiados grupos, como aconteceria numa escolha como $k=20$, o método passaria a subdividir regiões já sobrepostas sem ganho interpretativo real.
+
+Os valores médios de \textit{silhouette} para \textit{k-means} foram 0.1802 para $k=4$, 0.1805 para $k=5$ e 0.1619 para $k=6$, mostrando que $k=4$ e $k=5$ são praticamente equivalentes em qualidade geométrica. A preferência por $k=5$ resulta, assim, menos de um ganho quantitativo e mais de uma melhor legibilidade semântica dos perfis obtidos. A Figura~\ref{fig:pca_clusters} reforça esta conclusão: os grupos existem, mas sobrepõem-se nas fronteiras, o que justifica simultaneamente a utilidade exploratória do método e os seus limites como mecanismo de separação dura.
 
 \subsection{Leitura crítica da classificação de género}
 
@@ -542,9 +609,9 @@ A coexistência dos dois ramos sobre o mesmo espaço de \textit{features} permit
 
 \subsection{Leitura crítica da regressão}
 
-A regressão da popularidade confirma a natureza estruturalmente difícil do target. Mesmo após a inclusão do género por \textit{one-hot encoding}, todos os modelos permanecem com $R^2$ muito baixos: a regressão linear é a melhor das três abordagens com \textbf{$R^2 = 0.0459$}, seguida pela melhor árvore afinada com \textbf{$R^2 = 0.0346$}, e pela \textit{Random Forest} com \textbf{$R^2 = 0.0321$}. Os três modelos operam num intervalo muito estreito de erro (RMSE entre 18.19 e 18.33; MAE entre 13.72 e 13.90), o que mostra que aumentar a flexibilidade do modelo não altera materialmente a qualidade preditiva.
+A regressão da popularidade confirma a natureza estruturalmente difícil do target. Mesmo após a inclusão do género por \textit{one-hot encoding}, todos os modelos permanecem com $R^2$ muito baixos: a regressão linear é a melhor das três abordagens com \textbf{$R^2 = 0.0459$}, seguida de perto pela \textit{Random Forest} afinada com \textbf{$R^2 = 0.0436$}, e pela melhor árvore simples com \textbf{$R^2 = 0.0346$}. Os três modelos operam num intervalo muito estreito de erro (RMSE entre 18.19 e 18.30; MAE entre 13.72 e 13.81), o que mostra que aumentar a flexibilidade do modelo melhora ligeiramente a \textit{Random Forest}, mas não altera materialmente a qualidade preditiva global.
 
-O facto de a regressão linear superar os modelos não lineares sugere que o sinal disponível é simultaneamente fraco e relativamente simples. A proximidade entre a melhor árvore simples e a \textit{Random Forest} indica que, uma vez controlado o sobreajustamento por poda, a componente não linear do problema é reduzida.
+O facto de a regressão linear ainda superar ligeiramente os modelos não lineares sugere que o sinal disponível é simultaneamente fraco e relativamente simples. A afinação da \textit{Random Forest} aproxima o desempenho do modelo linear, mas a diferença residual indica que a componente não linear capturada pelas árvores não é suficiente para ultrapassar a limitação informativa das \textit{features} disponíveis.
 
 Globalmente, a regressão é a vertente onde o contraste entre \textit{clustering}/classificação e popularidade se torna mais visível. As mesmas \textit{features} acústicas que conseguem segmentar perfis sonoros e classificar géneros com qualidade razoável quase não conseguem prever a popularidade. Isto implica que a popularidade depende sobretudo de fatores externos ao espaço acústico: capital simbólico do artista, marketing, exposição em playlists, momento cultural e dinâmica social de consumo.
 
@@ -573,7 +640,7 @@ O dataset apresenta cerca de \textbf{8\,700 registos} no total, com múltiplas f
 
 \subsection{Visão geral do workflow desenvolvido no KNIME}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Visão geral do workflow desenvolvido no KNIME.png}
     \caption{Visão geral do workflow desenvolvido no KNIME para o dataset atribuído}
@@ -584,7 +651,7 @@ De forma geral, o workflow está organizado num conjunto de metanodes que encaps
 
 \section{Exploração}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Exploração.png}
     \caption{Metanode de Exploração no KNIME}
@@ -596,7 +663,6 @@ O primeiro passo da exploração dos dados foi a utilização do nó \code{Stati
 \begin{itemize}
     \item \code{Precipitation} e \code{rain} apresentam muitos missing values ($\sim$90\%);
     \item \code{Snowfall} tem todos os valores a 0 (mean = min = max = 0);
-    \item \code{RowID} é redundante;
     \item Todas as restantes features apresentam uma quantidade semelhante de missing values, cerca de 10\%. Por isso, deixa de ser viável remover as entradas com missing values, uma vez que, feito isso, o dataset final fica com $\approx$1\,300 entradas (apenas 15\% do total). Portanto, foram avaliadas, para cada modelo, diferentes abordagens para imputar os missing values (média e mediana para os numéricos e moda ou valor fixo ``Missing'' para as strings).
 \end{itemize}
 
@@ -606,7 +672,7 @@ Por fim, foi ainda feita uma análise dos valores das features categóricas com 
 
 \section{Transformação}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Transformação.png}
     \caption{Metanode de Transformação no KNIME}
@@ -618,7 +684,6 @@ As primeiras transformações aplicadas aos dados centraram-se nos formatos das 
 De seguida, no seguimento da exploração realizada, foram removidas algumas features:
 
 \begin{itemize}
-    \item \code{RowID} (redundante);
     \item \code{precipitation} e \code{rain} ($\sim$90\% missing values);
     \item \code{snowfall} (redundante, mean = min = max = 0).
 \end{itemize}
@@ -634,21 +699,21 @@ Por fim, de acordo com o que foi possível perceber na exploração, foi aplicad
 \begin{enumerate}
     \item A partição dos dados para treino e teste foi feita, sempre que possível, com recurso aos nós \code{X-Partitioner} e \code{X-Aggregator}, uma vez que o uso de cross-validation, embora mais custoso a nível computacional, permite aproveitar a totalidade do dataset e reduzir as chances do modelo sofrer de overfitting;
     \item Os nodos de cross-validation foram configurados com uma random seed, de modo a ser possível obter resultados reproduzíveis e sem variabilidade aleatória;
-    \item Não foram testadas todas as combinações possíveis de transformações de features e configurações dos modelos, pois é uma quantidade impraticável. Por isso, a abordagem adotada foi: testar um conjunto de abordagens e as suas combinações; tirar daí o melhor resultado; realizar o próximo conjunto de testes com a combinação obtida anteriormente. Isto pode fazer com que não sejam detectadas as melhores combinações para cada modelo, mas torna este processo de refinamento mais exequível.
+    \item Não foram testadas todas as combinações possíveis de transformações de features e configurações dos modelos, pois é uma quantidade impraticável. Por isso, a abordagem adotada foi sequencial: primeiro testar estratégias de pré-processamento, fixar a melhor combinação, e só depois variar hiperparâmetros estruturais do modelo. Isto pode fazer com que não sejam detectadas as melhores combinações globais para cada modelo, mas torna o processo de refinamento exequível e permite perceber melhor o efeito de cada grupo de decisões.
 \end{enumerate}
 
 \subsection{Decision Tree}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Decision Tree.png}
     \caption{Metanode do modelo Decision Tree no KNIME}
     \label{fig:decision_tree}
 \end{figure}
 
-Tal como mencionado na fase de exploração, os tratamentos de missing values testados foram média e mediana para os valores numéricos e, para os categóricos, moda e valor fixo ``Missing''. Já os outliers, tal como dito anteriormente, foram mantidos ou ajustados para o valor permitido mais próximo.
+Tal como mencionado na fase de exploração, os tratamentos de missing values testados foram média e mediana para os valores numéricos e, para os categóricos, moda e valor fixo ``Missing''. Já os outliers, tal como dito anteriormente, foram mantidos ou ajustados para o valor permitido mais próximo. A metodologia de refinamento da Decision Tree começou por esta comparação de pré-processamento; depois, mantendo a melhor família de transformações, foram avaliados os hiperparâmetros que controlam a estrutura da árvore: métrica de divisão, método de pruning e mínimo de registos por nó.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Decision Tree --- impacto das estratégias de pré-processamento}
     \begin{tabular}{ccccc}
@@ -667,7 +732,7 @@ Tal como mencionado na fase de exploração, os tratamentos de missing values te
     \end{tabular}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Decision Tree --- variação dos hiperparâmetros estruturais}
     \begin{tabular}{ccccc}
@@ -698,16 +763,16 @@ Os resultados obtidos mostram que o tratamento de missing values e outliers teve
 
 \subsection{Random Forest}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Random Forest.png}
     \caption{Metanode do modelo Random Forest no KNIME}
     \label{fig:random_forest}
 \end{figure}
 
-Aqui foram testadas as mesmas combinações de tratamento de missing values e outliers que na Decision Tree.
+Aqui foram testadas as mesmas combinações de tratamento de missing values e outliers que na Decision Tree. A metodologia de refinamento foi semelhante, mas adaptada ao funcionamento da Random Forest: primeiro avaliou-se o impacto do pré-processamento com 100 modelos, depois variaram-se os hiperparâmetros internos das árvores (critério de divisão, limite de profundidade e tamanho mínimo do nó filho), e por fim variou-se o número de modelos para verificar se aumentar o ensemble trazia ganhos de estabilidade.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Random Forest --- impacto das estratégias de pré-processamento (100 modelos)}
     \begin{tabular}{ccccc}
@@ -726,7 +791,7 @@ Aqui foram testadas as mesmas combinações de tratamento de missing values e ou
     \end{tabular}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Random Forest --- variação dos hiperparâmetros (100 modelos, outliers: manter, missing: mediana/moda)}
     \begin{tabular}{ccccc}
@@ -755,7 +820,7 @@ Aqui foram testadas as mesmas combinações de tratamento de missing values e ou
     \end{tabular}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Random Forest --- variação do número de modelos}
     \begin{tabular}{ccc}
@@ -775,16 +840,16 @@ Tal como observado na Decision Tree, as diferentes estratégias de tratamento de
 
 \subsection{Gradient Boosted Trees}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Gradient Boosted Trees.png}
     \caption{Metanode do modelo Gradient Boosted Trees no KNIME}
     \label{fig:gbt}
 \end{figure}
 
-Ao contrário do que foi feito até agora, não foram avaliadas as estratégias de imputação de missing values, uma vez que este modelo dispõe de mecanismos internos para lidar com este problema. Sendo assim, foram testados estes métodos juntamente com o tratamento de outliers com as configurações padrão, antes de começar a variar os hiperparâmetros.
+Ao contrário do que foi feito até agora, não foram avaliadas as estratégias de imputação de missing values, uma vez que este modelo dispõe de mecanismos internos para lidar com este problema. Sendo assim, foram testados estes métodos juntamente com o tratamento de outliers com as configurações padrão, antes de começar a variar os hiperparâmetros. A afinação do Gradient Boosted Trees foi feita em dois momentos: primeiro escolheu-se a forma de lidar com missing values e outliers; depois variou-se conjuntamente a learning rate e o número de modelos, mantendo a lógica de que uma learning rate menor exige mais árvores para acumular o mesmo efeito preditivo. Em paralelo, testou-se a profundidade das árvores e o row sampling, por serem parâmetros diretamente ligados à capacidade de generalização.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Gradient Boosted Trees --- avaliação dos métodos de missing values e outliers}
     \begin{tabular}{cccc}
@@ -801,7 +866,7 @@ Ao contrário do que foi feito até agora, não foram avaliadas as estratégias 
 
 É possível verificar que a configuração com ajuste de outliers tem um resultado igual a não tratar outliers (usando em ambos os casos XGBoost), pelo que se optou por utilizar a abordagem sem ajuste, por não introduzir dados artificiais. Na avaliação que se segue, a variação do learning rate foi feita em conjunto com o número de modelos, ou seja, diminuindo a learning rate, aumenta-se o número de modelos. Isto foi feito porque, ao diminuir a learning rate, cada árvore individual contribui menos para o resultado final, pelo que é necessário aumentar o total de árvores para compensar.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Gradient Boosted Trees --- variação dos hiperparâmetros}
     \begin{tabular}{cccccc}
@@ -834,7 +899,7 @@ Os resultados mostram que diferentes combinações de learning rate e número de
 
 \subsection{Multilayer Perceptron}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Multilayer Perceptron.png}
     \caption{Metanode do modelo Multilayer Perceptron no KNIME}
@@ -852,13 +917,14 @@ A outra transformação essencial tem a ver com as features categóricas nominai
 
 Um detalhe importante, que difere consoante qual das duas abordagens é utilizada, é quando se faz a normalização. No caso da numeração, a normalização é feita depois, de modo a englobar os novos valores criados. Assim, evita-se que a feature fique com uma escala diferente das restantes. Já no caso de se usar o One to Many, a normalização é feita antes, pois os valores já estão numa escala consistente (0 ou 1) e assim não se destrói a interpretação binária, que é precisamente o objetivo desta abordagem.
 
-Considerando tudo isto, começou-se por avaliar todas as combinações destas configurações. O único método de normalização não avaliado com a mesma profundidade que os outros dois foi o Decimal Scaling, porque fez o modelo obter uma accuracy de $\sim$60\% com algumas combinações variadas dos restantes parâmetros em avaliação. Assim, foi possível reduzir ligeiramente o espaço de procura (48 para 32 combinações).
+Considerando tudo isto, começou-se por avaliar todas as combinações destas configurações. O único método de normalização não avaliado com a mesma profundidade que os outros dois foi o Decimal Scaling, porque fez o modelo obter uma accuracy de $\sim$60\% com algumas combinações variadas dos restantes parâmetros em avaliação. Assim, foi possível reduzir ligeiramente o espaço de procura (48 para 32 combinações). Só depois de escolhida a melhor combinação de normalização, encoding, outliers e missing values é que se avançou para a afinação da arquitetura da rede, variando iterações, número de hidden layers e neurónios por camada.
 
-\begin{table}[p]
+\begin{table}[H]
     \centering
-    \small
+    \scriptsize
+    \setlength{\tabcolsep}{4pt}
     \caption{MLP --- impacto da normalização, encoding e pré-processamento (100 iter., 1 hidden layer, 10 neurónios)}
-    \begin{tabular}{p{1.8cm}p{2cm}p{1.4cm}p{1.5cm}p{2cm}p{1.2cm}p{1.5cm}}
+    \begin{tabular}{L{2.2cm}L{2cm}L{1.5cm}L{1.7cm}L{2cm}L{1.2cm}L{1.5cm}}
     \toprule
     Normalização & Categ. & Outliers & Miss. (núm.) & Miss. (cat.) & Acc. & Kappa \\
     \midrule
@@ -900,7 +966,7 @@ Considerando tudo isto, começou-se por avaliar todas as combinações destas co
 
 A melhor combinação encontrada foi: normalização Z-score, One to Many para as variáveis categóricas, ajuste de outliers, mediana para missing values numéricos e moda para missing values categóricos. Com esta combinação, procedeu-se à avaliação dos hiperparâmetros da rede.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{MLP --- variação dos hiperparâmetros de arquitetura (melhor pré-processamento)}
     \begin{tabular}{ccccc}
@@ -945,7 +1011,7 @@ Quanto à arquitetura da rede, verificou-se que aumentar o número de iteraçõe
 
 \subsection{Keras}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Keras.png}
     \caption{Metanode do modelo Keras no KNIME}
@@ -961,9 +1027,9 @@ Antes de prosseguir para a arquitetura da rede, é necessário efetuar algumas t
     \item \textbf{numerar:} numerar de 1 a 5 os possíveis valores de \code{Consumptions}. Este tratamento é adequado porque os valores da target já têm uma ordem própria (Low $<$ MediumLow $<$ Medium $<$ MediumHigh $<$ High), pelo que o significado da numeração continua a fazer sentido para a rede. Aqui, a camada de output passa a ter apenas 1 neurónio. O valor gerado pela rede é limitado ao intervalo válido e depois arredondado (e.g., 6.1 $\Rightarrow$ 5 e 0.2 $\Rightarrow$ 1), sendo por fim feita a conversão inversa para o valor em string correspondente.
 \end{itemize}
 
-Como configuração inicial, usou-se uma hidden layer com 16 neurónios e função de ativação ReLU (tal como em todas as futuras hidden layers adicionadas). No caso do One to Many, a loss function usada é a Categorical Cross Entropy com função de ativação Softmax. No caso da numeração, a loss function é a Mean Absolute Error com função de ativação Linear. O otimizador utilizado em ambas as situações foi o Adam, com os parâmetros padrão. O uso de cross-validation tornou-se computacionalmente inviável com este modelo, pelo que foi usado um Table Partitioner, fazendo uma partição de 70/30 com uma random seed fixa.
+Como configuração inicial, usou-se uma hidden layer com 16 neurónios e função de ativação ReLU (tal como em todas as futuras hidden layers adicionadas). No caso do One to Many, a loss function usada é a Categorical Cross Entropy com função de ativação Softmax. No caso da numeração, a loss function é a Mean Absolute Error com função de ativação Linear. O otimizador utilizado em ambas as situações foi o Adam, com os parâmetros padrão. O uso de cross-validation tornou-se computacionalmente inviável com este modelo, pelo que foi usado um Table Partitioner, fazendo uma partição de 70/30 com uma random seed fixa. A metodologia de refinamento começou pela comparação das duas representações da target com poucas epochs, passou depois para arquiteturas progressivamente mais largas e profundas, e só no final aumentou o número de epochs para as melhores arquiteturas de cada representação.
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Keras --- One to Many (target): variação da arquitetura (5 epochs)}
     \begin{tabular}{llcc}
@@ -980,7 +1046,7 @@ Como configuração inicial, usou-se uma hidden layer com 16 neurónios e funç�
     \end{tabular}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Keras --- Numerar (target): variação da arquitetura (5 epochs)}
     \begin{tabular}{llcc}
@@ -997,7 +1063,7 @@ Como configuração inicial, usou-se uma hidden layer com 16 neurónios e funç�
     \end{tabular}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{Keras --- variação do número de epochs (melhor arquitetura por estratégia)}
     \begin{tabular}{llcc}
@@ -1030,7 +1096,7 @@ Seguindo a metodologia SEMMA, começou-se por explorar o dataset de forma a iden
 
 Após a fase de modificação, foram desenvolvidos e avaliados cinco modelos de classificação distintos. A Tabela~\ref{tab:comparacao_final} sintetiza os melhores resultados obtidos para cada modelo.
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \caption{Comparação dos melhores resultados por modelo --- Dataset Atribuído}
 \label{tab:comparacao_final}
